@@ -21,16 +21,24 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // getSession() lit le JWT du cookie sans appel réseau — fiable en edge
+  const { data: { session } } = await supabase.auth.getSession()
 
-  // Routes publiques : login, callback, api
-  const isPublic = request.nextUrl.pathname.startsWith('/login') ||
+  const isPublic =
+    request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/landing') ||
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/api')
 
-  if (!user && !isPublic) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  if (!session && !isPublic) {
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    const redirectResponse = NextResponse.redirect(loginUrl)
+    // Copier les cookies Supabase dans la réponse de redirection
+    supabaseResponse.cookies.getAll().forEach(({ name, value, ...opts }) => {
+      redirectResponse.cookies.set(name, value, opts as Parameters<typeof redirectResponse.cookies.set>[2])
+    })
+    return redirectResponse
   }
 
   return supabaseResponse
