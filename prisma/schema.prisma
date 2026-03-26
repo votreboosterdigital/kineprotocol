@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Pathology {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  region      String
+  sport       String?
+  icd10Code   String?
+  tags        String[]
+  description String?
+  protocols   Protocol[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("pathologies")
+}
+
+model Phase {
+  id          String     @id @default(cuid())
+  name        String
+  order       Int
+  description String?
+  criteria    String[]
+  protocols   Protocol[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("phases")
+}
+
+model Exercise {
+  id                String             @id @default(cuid())
+  name              String
+  slug              String             @unique
+  region            String
+  objective         String
+  type              ExerciseType
+  level             ExerciseLevel
+  equipment         String[]
+  description       String
+  cues              String[]
+  commonErrors      String[]
+  variants          String[]
+  videoUrl          String?
+  tags              String[]
+  aiGenerated       Boolean            @default(false)
+  protocolExercises ProtocolExercise[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@map("exercises")
+}
+
+model Protocol {
+  id               String             @id @default(cuid())
+  pathologyId      String
+  pathology        Pathology          @relation(fields: [pathologyId], references: [id])
+  phaseId          String
+  phase            Phase              @relation(fields: [phaseId], references: [id])
+  patientAge       Int?
+  patientSport     String?
+  patientLevel     String?
+  sessionDuration  Int?
+  sessionsPerWeek  Int?
+  constraints      String[]
+  objectives       String[]
+  progression      String[]
+  sessionStructure Json
+  rawAgentOutput   Json
+  patientVersion   String?
+  version          Int                @default(1)
+  exercises        ProtocolExercise[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@map("protocols")
+}
+
+model ProtocolExercise {
+  id         String   @id @default(cuid())
+  protocolId String
+  protocol   Protocol @relation(fields: [protocolId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  order      Int
+  sets       Int?
+  reps       String?
+  rest       String?
+  notes      String?
+
+  @@unique([protocolId, order])
+  @@map("protocol_exercises")
+}
+
+enum ExerciseType {
+  MOBILITY
+  STRENGTH
+  PLYOMETRIC
+  MOTOR_CONTROL
+  STRETCHING
+  PROPRIOCEPTION
+  CARDIO
+}
+
+enum ExerciseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
