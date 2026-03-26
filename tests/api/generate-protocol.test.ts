@@ -4,6 +4,18 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 // Mocks
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: vi.fn().mockResolvedValue({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1', email: 'test@test.com' } } }),
+    },
+  }),
+}))
+
+vi.mock('@/lib/billing', () => ({
+  canGenerateProtocol: vi.fn().mockResolvedValue({ allowed: true, current: 0, limit: 3 }),
+}))
+
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     pathology: { findUniqueOrThrow: vi.fn() },

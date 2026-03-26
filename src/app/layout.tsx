@@ -12,11 +12,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <body className={inter.className}>
         <div className="flex min-h-screen">
           <Sidebar />
-          <main className="flex-1 p-8 bg-slate-50">
+          <main className="flex-1 p-8 bg-slate-50 dark:bg-slate-950 dark:text-slate-100">
             {children}
           </main>
         </div>

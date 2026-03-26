@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { Header } from '@/components/layout/Header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'

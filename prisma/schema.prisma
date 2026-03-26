@@ -59,6 +59,7 @@ model Exercise {
 
 model Protocol {
   id               String             @id @default(cuid())
+  userId           String?
   pathologyId      String
   pathology        Pathology          @relation(fields: [pathologyId], references: [id])
   phaseId          String
@@ -98,6 +99,32 @@ model ProtocolExercise {
   @@map("protocol_exercises")
 }
 
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  plan                 Plan               @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@map("subscriptions")
+}
+
+model UserProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  onboardingCompleted Boolean  @default(false)
+  cabinetName         String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
 enum ExerciseType {
   MOBILITY
   STRENGTH
@@ -112,4 +139,17 @@ enum ExerciseLevel {
   BEGINNER
   INTERMEDIATE
   ADVANCED
+}
+
+enum Plan {
+  FREE
+  PRO
+  CABINET
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
 }

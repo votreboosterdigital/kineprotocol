@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
+import { canGenerateProtocol } from '@/lib/billing'
 import { designProtocol } from '@/lib/agents/protocol-designer'
 import { enrichExercise } from '@/lib/agents/exercise-librarian'
 import { writePatientVersion } from '@/lib/agents/patient-writer'
@@ -8,6 +10,18 @@ import type { ExerciseType, ExerciseLevel } from '@prisma/client'
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+
+    const { allowed, reason, current, limit } = await canGenerateProtocol(user.id)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: reason, current, limit, upgradeUrl: '/billing' },
+        { status: 403 }
+      )
+    }
+
     const body = await req.json()
     const {
       pathologyId,
@@ -101,6 +115,7 @@ export async function POST(req: NextRequest) {
     // Création du protocole final en base avec tous ses exercices
     const protocol = await prisma.protocol.create({
       data: {
+        userId: user.id,
         pathologyId: pathology.id,
         phaseId: phase.id,
         patientAge,

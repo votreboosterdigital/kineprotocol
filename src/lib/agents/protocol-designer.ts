@@ -1,3 +1,4 @@
+import { jsonrepair } from 'jsonrepair'
 import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic'
 import type { ProtocolDesignerInput, ProtocolDesignerOutput } from '@/types/agents'
 
@@ -52,17 +53,31 @@ Génère entre 5 et 8 exercices adaptés à la phase. Réponds UNIQUEMENT avec l
 
   const response = await anthropic.messages.create({
     model: CLAUDE_MODEL,
-    max_tokens: 4096,
+    max_tokens: 8192,
     messages: [{ role: 'user', content: prompt }],
   })
 
-  const text = response.content[0].type === 'text' ? response.content[0].text : ''
+  const raw = response.content[0].type === 'text' ? response.content[0].text : ''
+
+  // Nettoyer les éventuels blocs markdown ```json ... ```
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+
+  const parse = (str: string): ProtocolDesignerOutput => {
+    const result = JSON.parse(str)
+    if (typeof result !== 'object' || result === null || !Array.isArray(result.objectives)) {
+      throw new Error('structure invalide')
+    }
+    return result as ProtocolDesignerOutput
+  }
 
   try {
-    return JSON.parse(text) as ProtocolDesignerOutput
+    return parse(text)
   } catch {
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('Agent 1 (protocol-designer) : réponse non parseable')
-    return JSON.parse(jsonMatch[0]) as ProtocolDesignerOutput
+    try {
+      return parse(jsonrepair(text))
+    } catch {
+      console.error('[protocol-designer] réponse brute:', raw.slice(0, 600))
+      throw new Error('Agent 1 (protocol-designer) : réponse non parseable')
+    }
   }
 }

@@ -1,3 +1,4 @@
+import { jsonrepair } from 'jsonrepair'
 import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic'
 import type { ExerciseLibrarianInput, ExerciseLibrarianOutput } from '@/types/agents'
 
@@ -30,8 +31,15 @@ Réponds UNIQUEMENT avec le JSON.`
     messages: [{ role: 'user', content: prompt }],
   })
 
-  const text = response.content[0].type === 'text' ? response.content[0].text : ''
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) throw new Error('Agent 2 (exercise-librarian) : réponse non parseable')
-  return JSON.parse(jsonMatch[0]) as ExerciseLibrarianOutput
+  const raw = response.content[0].type === 'text' ? response.content[0].text : ''
+  const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+  try {
+    return JSON.parse(text) as ExerciseLibrarianOutput
+  } catch {
+    try {
+      return JSON.parse(jsonrepair(text)) as ExerciseLibrarianOutput
+    } catch {
+      throw new Error('Agent 2 (exercise-librarian) : réponse non parseable')
+    }
+  }
 }
