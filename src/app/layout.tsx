@@ -1,33 +1,26 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { Sidebar } from '@/components/layout/Sidebar'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "KinéProtocol AI",
-  description: "Générateur de protocoles de rééducation assisté par IA",
-};
+  title: 'KinéProtocol AI',
+  description: 'Générateur de protocoles de rééducation assisté par IA',
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="fr">
+      <body className={inter.className}>
+        <div className="flex min-h-screen">
+          <Sidebar />
+          <main className="flex-1 p-8 bg-slate-50">
+            {children}
+          </main>
+        </div>
+      </body>
     </html>
-  );
+  )
 }
