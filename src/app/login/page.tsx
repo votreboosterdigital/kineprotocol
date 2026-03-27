@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -16,6 +16,22 @@ export default function LoginPage() {
   const [step, setStep] = useState<'email' | 'code'>('email')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Gère le cas où Supabase redirige ici avec ?code= (PKCE magic link)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const pkceCode = params.get('code')
+    if (pkceCode) {
+      const supabase = createClient()
+      supabase.auth.exchangeCodeForSession(pkceCode).then(({ error }) => {
+        if (!error) {
+          router.push('/')
+        } else {
+          setError('Lien expiré ou déjà utilisé. Demandez un nouveau code.')
+        }
+      })
+    }
+  }, [router])
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault()
