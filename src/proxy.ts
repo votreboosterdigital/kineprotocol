@@ -22,6 +22,14 @@ export async function proxy(request: NextRequest) {
   )
 
   // getSession() lit le JWT du cookie sans appel réseau — fiable en edge
+  // Si un code PKCE est dans l'URL, rediriger vers /auth/callback pour l'échanger
+  const pkceCode = request.nextUrl.searchParams.get('code')
+  if (pkceCode && !request.nextUrl.pathname.startsWith('/auth')) {
+    const callbackUrl = new URL('/auth/callback', request.url)
+    callbackUrl.searchParams.set('code', pkceCode)
+    return NextResponse.redirect(callbackUrl)
+  }
+
   const { data: { session } } = await supabase.auth.getSession()
 
   const isPublic =
