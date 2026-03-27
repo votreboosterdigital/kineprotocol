@@ -2,9 +2,89 @@ import { jsonrepair } from 'jsonrepair'
 import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic'
 import type { ProtocolDesignerInput, ProtocolDesignerOutput } from '@/types/agents'
 
+// Guide de référence clinique evidence-based (6 régions anatomiques)
+const CLINICAL_REFERENCE = `
+### 1. RACHIS (Cervical, Thoracique, Lombaire)
+#### Phases de prise en charge
+- Aiguë (<7j) : réduction douleur, éducation, repos lit contre-indiqué (max 48h sévère), reprise précoce ADL
+- Subaiguë (4-12 sem) : exercices actifs supervisés, contrôle moteur (transverse abdomen, multifides)
+- Renforcement/RTS : kinetic chain (hanche+thorax), charges axiales, mouvements sport-spécifiques
+#### Critères de progression et Paramètres de charge
+- Spondylolyse : S0-8 protection/no impact | S9-16 course lente si indolore | S17+ performance
+- Charge renforcement : 2-3 séries 8-12 rép à 60-80% 1RM
+#### Drapeaux Rouges
+- Généraux : âge <20/>55, douleur non mécanique constante, cancer ATCD, perte poids, fièvre, signes neuro étendus
+- Urgence : syndrome queue de cheval (anesthésie en selle, dysfonction sphinctérienne)
+- Cervical : Canadian C-Spine Rule fractures, screening vasculaire (5D, 3N) avant thérapie manuelle
+
+### 2. ÉPAULE (Bern Consensus 2022)
+#### Phases de prise en charge
+- Aiguë : réduction douleur/inflammation, mobilité, stabilité dynamique, chaîne semi-fermée
+- Intermédiaire : isotonique coiffe + rétracteurs scapula, intégration kinetic chain + core
+- RTS : plyométrie précoce, thrower's program (accélération/décélération)
+#### Critères RTS (6 domaines)
+- Douleur (NRS), Mobilité (GIRD <20°), Force (ratio RE/RI 66-75%), Chaîne cinétique, Psychologie (SIRSI/I-PRRS), Performance spécifique
+- Charge : 70-85% 1RM 2-3x/sem pour hypertrophie/force
+#### Drapeaux Rouges
+- Exclure douleur référée cervicale (test Spurling), néoplasme (douleur nocturne sévère, scapula limitée)
+
+### 3. GENOU
+#### Phases de prise en charge
+- Aiguë : POLICE, extension complète + activation quadriceps
+- Subaiguë : chaîne fermée (squats <60° flexion), équilibre
+- Renforcement : Heavy Slow Resistance isotonique
+- RTS : OFR (mouvements linéaires → multidirectionnels → skills → sport-spécifique → contact)
+#### Critères RTS
+- LSI >90% force et hop tests, T-test <11s soccer, confiance psychologique complète
+- Tendinopathie : isométrie 70% MVC 45s (antalgique), puis HSR
+#### Drapeaux Rouges
+- Ottawa Knee Rules (fracture : âge >55, douleur tête fibula/patella, flexion <90°, incapacité marche 4 pas)
+- Hémarthrose rapide (<2h) : LCA ou fracture ostéochondrale
+
+### 4. CHEVILLE
+#### Phases de prise en charge
+- Aiguë : POLICE, mise en charge précoce avec protection (orthèse/tape)
+- Subaiguë : dorsiflexion (lunge stretch), proprioception, renforcement inv/éversion
+- RTS : course en 8, sauts, changements de direction
+#### Critères de progression
+- Single-leg heel raise >20 rép (force triceps sural)
+#### Drapeaux Rouges
+- Ottawa Ankle Rules (malléoles/naviculaire/5ème méta + incapacité mise en charge)
+- Syndesmose : douleur AITFL + dorsiflexion/rotation externe forcée
+
+### 5. COUDE
+#### Phases de prise en charge
+- Aiguë : modification activité, correction technique (tennis/golf), contrôle douleur
+- Restauration : force grip + endurance avant-bras, excentriques progressifs
+#### Critères de progression
+- Extension complète nécessaire (exclure fracture post-trauma)
+- Amélioration force grip vs côté sain
+#### Drapeaux Rouges
+- Incapacité extension complète post-trauma → radiographie
+- Exclure atteinte rachis cervical ou tension neurale périphérique
+
+### 6. HANCHE ET PUBALGIE (Doha Consensus 2015)
+#### Phases de prise en charge
+- Aiguë : minimiser charges provocatrices (adduction forcée), isométrie sous seuil douleur
+- Conditionnement : renforcement graduel adducteurs/fléchisseurs hanche/abdominaux (20-30 RM initiaux)
+- Sport-spécifique : élastiques en position de tir, drills kicking progressifs, changements direction
+#### Critères RTS
+- ROM abduction actif = côté sain, Force adducteurs >80% côté sain, Squeeze test indolore
+- Charge : vitesse exécution excentrique en phase terminale
+#### Drapeaux Rouges
+- Fracture fémorale : test percussion patella-pubienne
+- Douleur nocturne, clic douloureux (labrum), faiblesse majeure rotateurs
+
+### Règle de charge transversale NSCA/CSCCa
+Après inactivité prolongée : réduire volume de 50%(S1) / 30%(S2) / 20%(S3) / 10%(S4) par rapport au volume maximal connu.
+`
+
 export async function designProtocol(input: ProtocolDesignerInput): Promise<ProtocolDesignerOutput> {
   const prompt = `Tu es un kinésithérapeute expert en rééducation sportive et orthopédique.
-Tu dois générer un protocole de rééducation structuré et evidence-based.
+Tu dois générer un protocole de rééducation structuré et evidence-based, en appliquant systématiquement les guides cliniques de référence ci-dessous.
+
+## Guide de référence clinique evidence-based
+${CLINICAL_REFERENCE}
 
 ## Contexte patient
 - Pathologie : ${input.pathologyName} (région : ${input.region})
