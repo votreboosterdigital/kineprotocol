@@ -1,6 +1,8 @@
 'use client'
 export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,33 +10,47 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
+  const [code, setCode] = useState('')
+  const [step, setStep] = useState<'email' | 'code'>('email')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleSendCode(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    setError('')
     const supabase = createClient()
-    await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${location.origin}/auth/callback` },
+      options: { shouldCreateUser: true },
     })
-    setSent(true)
+    if (error) {
+      setError(error.message)
+    } else {
+      setStep('code')
+    }
     setLoading(false)
   }
 
-  if (sent) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Vérifiez votre email</CardTitle>
-            <CardDescription>Un lien de connexion a été envoyé à {email}</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    )
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    const supabase = createClient()
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: 'email',
+    })
+    if (error) {
+      setError('Code invalide ou expiré. Réessayez.')
+    } else {
+      router.push('/')
+      router.refresh()
+    }
+    setLoading(false)
   }
 
   return (
@@ -42,25 +58,63 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">KinéProtocol AI</CardTitle>
-          <CardDescription>Connexion par lien magique — aucun mot de passe</CardDescription>
+          <CardDescription>
+            {step === 'email'
+              ? 'Connexion par code à usage unique — aucun mot de passe'
+              : `Code envoyé à ${email}`}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email professionnel</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="kiné@cabinet.fr"
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Envoi...' : 'Recevoir le lien de connexion'}
-            </Button>
-          </form>
+          {step === 'email' ? (
+            <form onSubmit={handleSendCode} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email professionnel</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="kiné@cabinet.fr"
+                  required
+                />
+              </div>
+              {error && <p className="text-sm text-red-500">{error}</p>}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Envoi...' : 'Recevoir le code'}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyCode} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="code">Code à 6 chiffres</Label>
+                <Input
+                  id="code"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  autoFocus
+                  required
+                />
+                <p className="text-xs text-slate-500">Vérifiez votre boîte mail (et vos spams)</p>
+              </div>
+              {error && <p className="text-sm text-red-500">{error}</p>}
+              <Button type="submit" className="w-full" disabled={loading || code.length !== 6}>
+                {loading ? 'Vérification...' : 'Se connecter'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => { setStep('email'); setCode(''); setError('') }}
+              >
+                ← Changer d&apos;email
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
     </div>
