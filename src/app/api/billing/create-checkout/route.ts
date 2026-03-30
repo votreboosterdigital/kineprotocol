@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { stripe, PLANS } from '@/lib/stripe'
 import { getUserSubscription } from '@/lib/billing'
 import { prisma } from '@/lib/prisma'
+import { getAppUrl } from '@/lib/app-url'
 import type { PlanKey } from '@/lib/stripe'
 
 export async function POST(req: NextRequest) {
@@ -33,8 +34,8 @@ export async function POST(req: NextRequest) {
     mode: 'subscription',
     payment_method_types: ['card'],
     line_items: [{ price: PLANS[plan].stripePriceId!, quantity: 1 }],
-    success_url: `${process.env.NEXTAUTH_URL}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXTAUTH_URL}/billing`,
+    success_url: `${getAppUrl(req)}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${getAppUrl(req)}/billing`,
     locale: 'fr',
     currency: 'eur',
     metadata: { userId: user.id, plan },

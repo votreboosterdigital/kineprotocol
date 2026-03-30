@@ -61,7 +61,7 @@ ${EXERCISE_TAXONOMY}
 
 ## Format de réponse attendu (JSON strict)
 {
-  "name": "Nom standardisé et précis",
+  "name": "Nom anglais standardisé — Traduction française (ex: Dead Bug — Le scarabée inversé)",
   "slug": "nom-en-kebab-case-unique",
   "description": "Description technique complète (3-4 phrases) pour un kinésithérapeute",
   "cues": ["Consigne de placement 1", "Consigne d'exécution 2", "Point d'attention 3"],

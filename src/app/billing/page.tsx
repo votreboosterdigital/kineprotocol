@@ -86,15 +86,15 @@ export default function BillingPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
         {(Object.entries(PLANS) as [PlanKey, typeof PLANS[PlanKey]][]).map(([key, plan]) => {
           const isCurrent = currentPlan === key
 
           return (
             <Card key={key} className={`relative ${key === 'PRO' ? 'border-blue-500 border-2' : ''}`}>
               {key === 'PRO' && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-blue-500 text-white text-xs">Recommandé</Badge>
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                  <Badge className="bg-blue-500 text-white text-xs px-3 py-1 shadow-md">Recommandé</Badge>
                 </div>
               )}
               <CardHeader>

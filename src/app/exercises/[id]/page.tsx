@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { EXERCISE_TYPE_FR, EXERCISE_LEVEL_FR } from '@/lib/i18n/exercises'
 
 export default async function ExerciseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -14,7 +15,7 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
     <div>
       <Header
         title={exercise.name}
-        description={`${exercise.region} · ${exercise.type} · ${exercise.level}`}
+        description={`${exercise.region} · ${EXERCISE_TYPE_FR[exercise.type]} · ${EXERCISE_LEVEL_FR[exercise.level]}`}
       />
       <div className="grid grid-cols-2 gap-6 max-w-4xl">
         <Card>

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { Exercise } from '@prisma/client'
+import { EXERCISE_TYPE_FR, EXERCISE_LEVEL_FR } from '@/lib/i18n/exercises'
 
 export function ExerciseCard({ exercise }: { exercise: Exercise }) {
   return (
@@ -19,8 +20,8 @@ export function ExerciseCard({ exercise }: { exercise: Exercise }) {
           <p className="text-xs text-slate-500 line-clamp-2">{exercise.description}</p>
           <div className="flex gap-1 mt-2 flex-wrap">
             <Badge variant="outline" className="text-xs">{exercise.region}</Badge>
-            <Badge variant="outline" className="text-xs">{exercise.type}</Badge>
-            <Badge variant="outline" className="text-xs">{exercise.level}</Badge>
+            <Badge variant="outline" className="text-xs">{EXERCISE_TYPE_FR[exercise.type]}</Badge>
+            <Badge variant="outline" className="text-xs">{EXERCISE_LEVEL_FR[exercise.level]}</Badge>
           </div>
         </CardContent>
       </Card>

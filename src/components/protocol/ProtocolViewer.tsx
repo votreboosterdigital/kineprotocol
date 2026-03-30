@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Download } from 'lucide-react'
 import type { ProtocolWithRelations } from '@/types/database'
 import type { PatientWriterOutput } from '@/types/agents'
+import { EXERCISE_TYPE_FR, EXERCISE_LEVEL_FR } from '@/lib/i18n/exercises'
 
 interface ProtocolViewerProps {
   protocol: ProtocolWithRelations
@@ -81,8 +82,8 @@ export function ProtocolViewer({ protocol, patientVersion }: ProtocolViewerProps
                         </div>
                       </div>
                       <div className="flex gap-1 flex-wrap ml-4">
-                        <Badge variant="outline" className="text-xs">{exercise.type}</Badge>
-                        <Badge variant="outline" className="text-xs">{exercise.level}</Badge>
+                        <Badge variant="outline" className="text-xs">{EXERCISE_TYPE_FR[exercise.type]}</Badge>
+                        <Badge variant="outline" className="text-xs">{EXERCISE_LEVEL_FR[exercise.level]}</Badge>
                       </div>
                     </div>
                     {notes && <p className="text-xs text-amber-600 mt-1">Note: {notes}</p>}
