@@ -1,5 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { Header } from '@/components/layout/Header'
 import { ProtocolCard } from '@/components/protocol/ProtocolCard'
 import Link from 'next/link'
@@ -7,7 +9,12 @@ import { Button } from '@/components/ui/button'
 import type { ProtocolWithRelations } from '@/types/database'
 
 export default async function ProtocolsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
   const protocols = await prisma.protocol.findMany({
+    where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
     include: { pathology: true, phase: true, exercises: { include: { exercise: true } } },
   }) as ProtocolWithRelations[]

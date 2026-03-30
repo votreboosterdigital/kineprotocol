@@ -86,17 +86,19 @@ export default function BillingPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         {(Object.entries(PLANS) as [PlanKey, typeof PLANS[PlanKey]][]).map(([key, plan]) => {
           const isCurrent = currentPlan === key
 
           return (
-            <Card key={key} className={`relative ${key === 'PRO' ? 'border-blue-500 border-2' : ''}`}>
-              {key === 'PRO' && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+            <div key={key} className="flex flex-col">
+              {/* Badge au-dessus de la card, dans son propre flux */}
+              <div className="h-7 flex items-center justify-center">
+                {key === 'PRO' && (
                   <Badge className="bg-blue-500 text-white text-xs px-3 py-1 shadow-md">Recommandé</Badge>
-                </div>
-              )}
+                )}
+              </div>
+            <Card className={`relative flex-1 ${key === 'PRO' ? 'border-blue-500 border-2' : ''}`}>
               <CardHeader>
                 <CardTitle className="text-lg">{plan.name}</CardTitle>
                 <div className="mt-1">
@@ -138,6 +140,7 @@ export default function BillingPage() {
                 )}
               </CardContent>
             </Card>
+            </div>
           )
         })}
       </div>
