@@ -56,7 +56,7 @@ export function ProtocolPDF({ protocol, patientVersion }: ProtocolPDFProps) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Signes d'alarme</Text>
+          <Text style={styles.sectionTitle}>Signes d&apos;alarme</Text>
           {patientVersion.importantWarnings.map((w, i) => (
             <Text key={i} style={styles.warning}>⚠️ {w}</Text>
           ))}

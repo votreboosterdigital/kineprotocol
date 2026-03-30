@@ -3,6 +3,19 @@ import { jsonrepair } from 'jsonrepair'
 import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic'
 import type { PatientWriterInput, PatientWriterOutput } from '@/types/agents'
 
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt === maxAttempts) throw error;
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  throw new Error("Max attempts reached");
+}
+
 // Guide PNE — Communication thérapeutique et neurosciences de la douleur
 const PNE_GUIDE = `
 ### 1. Principes PNE (Pain Neuroscience Education)
@@ -92,11 +105,11 @@ ${input.exercises.map((e, i) => `  ${i + 1}. ${e.name} — ${e.sets ?? ''}x${e.r
 
 Réponds UNIQUEMENT avec le JSON.`
 
-  const response = await anthropic.messages.create({
+  const response = await withRetry(() => anthropic.messages.create({
     model: CLAUDE_MODEL,
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
-  })
+  }))
 
   const raw = response.content[0].type === 'text' ? response.content[0].text : ''
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()

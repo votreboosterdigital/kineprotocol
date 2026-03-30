@@ -1,13 +1,17 @@
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
 import type { PatientWriterOutput } from '@/types/agents'
 
-Font.register({
-  family: 'Inter',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff' },
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiJ-Ek-_EeA.woff', fontWeight: 700 },
-  ],
-})
+let fontRegistered = false;
+if (!fontRegistered) {
+  Font.register({
+    family: 'Inter',
+    fonts: [
+      { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff' },
+      { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiJ-Ek-_EeA.woff', fontWeight: 700 },
+    ],
+  });
+  fontRegistered = true;
+}
 
 const styles = StyleSheet.create({
   page: { fontFamily: 'Inter', padding: 40, fontSize: 11, color: '#1e293b', backgroundColor: '#ffffff' },

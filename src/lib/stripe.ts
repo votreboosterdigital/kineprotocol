@@ -26,26 +26,34 @@ export const PLANS = {
     name: 'Gratuit',
     price: 0,
     currency: 'eur',
+    limit: 3,
     protocolsPerMonth: 3,
     features: ['3 protocoles/mois', 'PDF patient', 'Bibliothèque exercices'],
-    stripePriceId: null,
+    priceId: null as null,
+    stripePriceId: null as null,
   },
   PRO: {
     name: 'Pro',
     price: 2900,
     currency: 'eur',
-    protocolsPerMonth: Infinity,
+    limit: 50,
+    protocolsPerMonth: 50,
     features: ['Protocoles illimités', 'PDF brandé cabinet', 'Historique complet', 'Export CSV'],
-    stripePriceId: process.env.STRIPE_PRO_PRICE_ID!,
+    priceId: 'price_1TFLsYPWeiebKSoAwDFe3kaF',
+    stripePriceId: 'price_1TFLsYPWeiebKSoAwDFe3kaF',
   },
   CABINET: {
     name: 'Cabinet',
     price: 7900,
     currency: 'eur',
-    protocolsPerMonth: Infinity,
+    limit: 999,
+    protocolsPerMonth: 999,
     features: ['Tout Pro', '5 comptes kiné', 'Logo cabinet sur PDF', 'Stats cabinet', 'Support prioritaire'],
-    stripePriceId: process.env.STRIPE_CABINET_PRICE_ID!,
+    priceId: 'price_1TFLv2PWeiebKSoAgmKQl4hd',
+    stripePriceId: 'price_1TFLv2PWeiebKSoAgmKQl4hd',
   },
 } as const
 
 export type PlanKey = keyof typeof PLANS
+// Alias pour la compatibilité avec usage.ts
+export type PlanType = PlanKey

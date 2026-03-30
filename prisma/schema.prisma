@@ -80,6 +80,9 @@ model Protocol {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 
+  @@index([userId])
+  @@index([pathologyId])
+  @@index([phaseId])
   @@map("protocols")
 }
 
@@ -96,6 +99,8 @@ model ProtocolExercise {
   notes      String?
 
   @@unique([protocolId, order])
+  @@index([protocolId])
+  @@index([exerciseId])
   @@map("protocol_exercises")
 }
 
@@ -104,6 +109,7 @@ model Subscription {
   userId               String             @unique
   stripeCustomerId     String?            @unique
   stripeSubscriptionId String?            @unique
+  stripePriceId        String?
   plan                 Plan               @default(FREE)
   status               SubscriptionStatus @default(ACTIVE)
   currentPeriodEnd     DateTime?

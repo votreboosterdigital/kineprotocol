@@ -2,6 +2,19 @@ import { jsonrepair } from 'jsonrepair'
 import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic'
 import type { ExerciseLibrarianInput, ExerciseLibrarianOutput } from '@/types/agents'
 
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt === maxAttempts) throw error;
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  throw new Error("Max attempts reached");
+}
+
 // Taxonomie de référence — exercices thérapeutiques en kinésithérapie
 const EXERCISE_TAXONOMY = `
 ### I. PRÉPARATION NEUROMUSCULAIRE ET THÉRAPIE MANUELLE
@@ -60,11 +73,11 @@ ${EXERCISE_TAXONOMY}
 
 Réponds UNIQUEMENT avec le JSON.`
 
-  const response = await anthropic.messages.create({
+  const response = await withRetry(() => anthropic.messages.create({
     model: CLAUDE_MODEL,
     max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
-  })
+  }))
 
   const raw = response.content[0].type === 'text' ? response.content[0].text : ''
   const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()

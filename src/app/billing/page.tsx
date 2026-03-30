@@ -41,7 +41,7 @@ export default function BillingPage() {
       body: JSON.stringify({ plan }),
     })
     const data = await res.json()
-    if (data.url) window.location.href = data.url
+    if (data.url) window.location.assign(data.url)
     setCheckoutLoading(null)
   }
 
@@ -49,7 +49,7 @@ export default function BillingPage() {
     setPortalLoading(true)
     const res = await fetch('/api/billing/portal', { method: 'POST' })
     const data = await res.json()
-    if (data.url) window.location.href = data.url
+    if (data.url) window.location.assign(data.url)
     setPortalLoading(false)
   }
 

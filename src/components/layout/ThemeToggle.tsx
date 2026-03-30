@@ -1,18 +1,19 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-export function ThemeToggle() {
-  const [dark, setDark] = useState(false)
+// Lire la préférence initiale et appliquer la classe dark avant le premier render
+function initDark(): boolean {
+  if (typeof window === 'undefined') return false
+  const stored = localStorage.getItem('theme')
+  const isDark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  document.documentElement.classList.toggle('dark', isDark)
+  return isDark
+}
 
-  useEffect(() => {
-    const stored = localStorage.getItem('theme')
-    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark')
-      setDark(true)
-    }
-  }, [])
+export function ThemeToggle() {
+  const [dark, setDark] = useState(initDark)
 
   function toggle() {
     const next = !dark

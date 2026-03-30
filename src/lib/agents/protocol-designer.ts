@@ -2,6 +2,19 @@ import { jsonrepair } from 'jsonrepair'
 import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic'
 import type { ProtocolDesignerInput, ProtocolDesignerOutput } from '@/types/agents'
 
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt === maxAttempts) throw error;
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  throw new Error("Max attempts reached");
+}
+
 // Guide de référence clinique evidence-based (6 régions anatomiques)
 const CLINICAL_REFERENCE = `
 ### 1. RACHIS (Cervical, Thoracique, Lombaire)
@@ -131,11 +144,11 @@ Génère un protocole complet en JSON strict avec cette structure exacte :
 
 Génère entre 5 et 8 exercices adaptés à la phase. Réponds UNIQUEMENT avec le JSON, sans markdown, sans commentaire.`
 
-  const response = await anthropic.messages.create({
+  const response = await withRetry(() => anthropic.messages.create({
     model: CLAUDE_MODEL,
     max_tokens: 8192,
     messages: [{ role: 'user', content: prompt }],
-  })
+  }))
 
   const raw = response.content[0].type === 'text' ? response.content[0].text : ''
 
