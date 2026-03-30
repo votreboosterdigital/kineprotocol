@@ -58,7 +58,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.verifyOtp({
       email,
       token: code,
-      type: 'email',
+      type: 'magiclink',
     })
     if (error) {
       setError('Code invalide ou expiré. Réessayez.')
