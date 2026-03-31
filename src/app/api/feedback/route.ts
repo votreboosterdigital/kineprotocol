@@ -13,8 +13,6 @@ const feedbackSchema = z.object({
 
 export type FeedbackPayload = z.infer<typeof feedbackSchema>
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 /**
  * POST /api/feedback
  * Reçoit un retour utilisateur, valide les données, envoie un email de notification à l'admin.
@@ -41,6 +39,8 @@ export async function POST(req: NextRequest) {
   }
 
   const { email, message, type } = parsed.data
+  // Instanciation lazy — évite le crash au build si la var est absente
+  const resend = new Resend(process.env.RESEND_API_KEY)
   const adminEmail = process.env.ADMIN_EMAIL
 
   if (!adminEmail) {
