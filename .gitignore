@@ -42,3 +42,7 @@ next-env.d.ts
 /src/generated/prisma
 
 .vercel
+
+# MCP config (contient les tokens et secrets d'accès)
+.mcp.json
+.mcp*.json
