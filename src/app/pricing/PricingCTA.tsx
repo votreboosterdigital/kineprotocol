@@ -11,6 +11,7 @@ interface PricingCTAProps {
 
 export function PricingCTA({ planKey, label, highlight }: PricingCTAProps) {
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const router = useRouter()
 
   async function handleClick() {
@@ -21,6 +22,7 @@ export function PricingCTA({ planKey, label, highlight }: PricingCTAProps) {
     }
 
     setLoading(true)
+    setErrorMsg(null)
     try {
       const res = await fetch('/api/billing/create-checkout', {
         method: 'POST',
@@ -32,7 +34,8 @@ export function PricingCTA({ planKey, label, highlight }: PricingCTAProps) {
       if (!res.ok) {
         // Non authentifié → rediriger vers login
         if (res.status === 401) { router.push('/login'); return }
-        console.error('Checkout error:', data.error)
+        // Afficher un message générique sans exposer l'erreur serveur
+        setErrorMsg('Une erreur est survenue. Veuillez réessayer.')
         return
       }
 
@@ -43,17 +46,23 @@ export function PricingCTA({ planKey, label, highlight }: PricingCTAProps) {
   }
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={loading}
-      className={[
-        'w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed',
-        highlight
-          ? 'bg-blue-600 text-white hover:bg-blue-700'
-          : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700',
-      ].join(' ')}
-    >
-      {loading ? 'Redirection...' : label}
-    </button>
+    <div className="w-full space-y-1">
+      <button
+        onClick={handleClick}
+        disabled={loading}
+        className={[
+          'w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed',
+          highlight
+            ? 'bg-blue-600 text-white hover:bg-blue-700'
+            : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700',
+        ].join(' ')}
+      >
+        {loading ? 'Redirection...' : label}
+      </button>
+      {/* Message d'erreur visible par l'utilisateur (sans détails serveur) */}
+      {errorMsg && (
+        <p className="text-xs text-red-500 text-center">{errorMsg}</p>
+      )}
+    </div>
   )
 }
