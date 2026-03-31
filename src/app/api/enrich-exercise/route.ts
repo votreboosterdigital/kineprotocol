@@ -14,9 +14,10 @@ export async function POST(req: NextRequest) {
     const result = await enrichExercise({ name, region, objective })
     return NextResponse.json({ success: true, exercise: result })
   } catch (error) {
+    // Logger l'erreur complète côté serveur, message générique au client
     console.error('[enrich-exercise]', error)
     return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' },
+      { success: false, error: "Erreur lors de l'enrichissement de l'exercice" },
       { status: 500 }
     )
   }

@@ -148,9 +148,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, protocol })
   } catch (error) {
+    // Logger l'erreur complète côté serveur, sans l'exposer au client
     console.error('[generate-protocol]', error)
     return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' },
+      { success: false, error: 'Erreur lors de la génération du protocole' },
       { status: 500 }
     )
   }

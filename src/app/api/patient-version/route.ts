@@ -7,9 +7,10 @@ export async function POST(req: NextRequest) {
     const result = await writePatientVersion(body)
     return NextResponse.json({ success: true, patientVersion: result })
   } catch (error) {
+    // Logger l'erreur complète côté serveur, message générique au client
     console.error('[patient-version]', error)
     return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Erreur inconnue' },
+      { success: false, error: 'Erreur lors de la génération de la version patient' },
       { status: 500 }
     )
   }
