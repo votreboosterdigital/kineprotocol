@@ -423,13 +423,8 @@ export default function LandingPage() {
 
       {/* ── Footer ── */}
       <footer style={{ borderTop: '1px solid #1D2333' }}>
-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs" style={{ color: '#5A6880' }}>© 2025 KinéProtocol AI · Conçu à Montréal</p>
-          <div className="flex items-center gap-6">
-            {['Mentions légales', 'Confidentialité', 'Contact'].map(l => (
-              <a key={l} href="#" className="text-xs transition-colors" style={{ color: '#5A6880' }}>{l}</a>
-            ))}
-          </div>
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <p className="text-xs text-center" style={{ color: '#5A6880' }}>© 2026 KinéProtocol AI · Conçu par un kiné pour les kinés</p>
         </div>
       </footer>
     </div>
