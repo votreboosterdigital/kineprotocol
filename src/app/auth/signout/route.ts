@@ -9,5 +9,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   await supabase.auth.signOut()
-  return NextResponse.redirect(new URL('/landing', request.url))
+  // 303 See Other : force le navigateur à suivre la redirection en GET (évite le 405)
+  return NextResponse.redirect(new URL('/landing', request.url), { status: 303 })
 }
