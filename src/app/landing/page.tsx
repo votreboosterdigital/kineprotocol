@@ -1,278 +1,448 @@
+import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { PLANS } from '@/lib/stripe'
+
+export const metadata: Metadata = {
+  title: 'KinéProtocol AI — Protocoles de rééducation en 30 secondes',
+  description:
+    "Générez automatiquement vos protocoles de rééducation. Basé sur Cochrane, JOSPT, Maitland. Gratuit jusqu'à 3 protocoles/mois.",
+}
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-      {/* Header sticky */}
-      <header className="sticky top-0 z-50 border-b border-slate-100 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <span className="font-bold text-lg">KinéProtocol AI</span>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
-              Se connecter
-            </Link>
-            <Link href="/login">
-              <Button size="sm">Commencer gratuitement</Button>
-            </Link>
+    /* -m-6 contrebalance le p-6 du layout root */
+    <div className="-m-6 min-h-screen" style={{ background: '#080A0F', color: '#EDF2F8' }}>
+
+      {/* ── Nav ── */}
+      <header
+        className="sticky top-0 z-50"
+        style={{ background: 'rgba(8,10,15,0.9)', borderBottom: '1px solid #1D2333', backdropFilter: 'blur(12px)' }}
+      >
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-display font-bold text-[15px]" style={{ color: '#EDF2F8' }}>KinéProtocol</span>
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,200,150,0.15)', color: '#00C896' }}>AI</span>
           </div>
+          <nav className="hidden md:flex items-center gap-6">
+            <a href="#how" className="text-sm transition-colors" style={{ color: '#A8B4C8' }}>Comment ça marche</a>
+            <a href="#pricing" className="text-sm transition-colors" style={{ color: '#A8B4C8' }}>Tarifs</a>
+            <Link href="/login" className="text-sm transition-colors" style={{ color: '#A8B4C8' }}>Connexion</Link>
+          </nav>
+          <Link
+            href="/login"
+            className="btn-shimmer text-sm font-medium px-5 py-2 rounded-lg"
+            style={{ color: '#080A0F' }}
+          >
+            Commencer gratuitement →
+          </Link>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="max-w-4xl mx-auto px-4 pt-20 pb-16 text-center space-y-6">
-        <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-sm px-4 py-1.5 rounded-full border border-blue-200 dark:border-blue-800">
-          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-          Nouveau · Propulsé par Claude AI
-        </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight">
-          Générez vos protocoles de rééducation en 30 secondes
-        </h1>
-        <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-          KinéProtocol AI assiste les kinésithérapeutes dans la rédaction de protocoles evidence-based et de documents patients.
-          Vous restez décisionnaire, l&apos;IA vous fait gagner 2h par jour.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-          <Link href="/login">
-            <Button size="lg" className="w-full sm:w-auto">
-              Essayer gratuitement — 3 protocoles offerts
-            </Button>
-          </Link>
-          <a href="#demo">
-            <Button size="lg" variant="outline" className="w-full sm:w-auto">
-              Voir un exemple de protocole
-            </Button>
-          </a>
-        </div>
-
-        {/* Mockup interface */}
-        <div className="mt-10 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-6 text-left shadow-xl overflow-hidden">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-3 h-3 rounded-full bg-red-400" />
-            <div className="w-3 h-3 rounded-full bg-yellow-400" />
-            <div className="w-3 h-3 rounded-full bg-green-400" />
-          </div>
-          <div className="space-y-3">
-            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
-            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2" />
-            <div className="grid grid-cols-3 gap-3 mt-4">
-              {['Mobilité', 'Renforcement', 'Proprioception'].map((t) => (
-                <div key={t} className="bg-blue-100 dark:bg-blue-900 rounded-lg p-3 text-center">
-                  <div className="text-xs font-medium text-blue-700 dark:text-blue-300">{t}</div>
-                  <div className="h-2 bg-blue-200 dark:bg-blue-800 rounded mt-2 w-2/3 mx-auto" />
+      {/* ── Hero ── */}
+      <section className="max-w-6xl mx-auto px-6 pt-24 pb-20">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          {/* Gauche */}
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium"
+              style={{ background: 'rgba(0,200,150,0.08)', border: '1px solid rgba(0,200,150,0.2)', color: '#00C896' }}>
+              Conçu par un kinésithérapeute
+            </div>
+            <h1 className="font-display font-extrabold text-4xl md:text-5xl leading-tight" style={{ color: '#EDF2F8' }}>
+              Vos protocoles en 30 secondes, pas 30 minutes.
+            </h1>
+            <p className="text-lg leading-relaxed" style={{ color: '#A8B4C8' }}>
+              KinéProtocol AI génère des protocoles de rééducation structurés, basés sur les recommandations Cochrane et JOSPT — avec un document patient en langage clair, immédiatement.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/login"
+                className="btn-shimmer inline-flex items-center justify-center px-6 py-3 rounded-xl text-sm font-medium"
+                style={{ color: '#080A0F' }}
+              >
+                Générer mon premier protocole →
+              </Link>
+              <Link
+                href="/demo"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-sm font-medium transition-all"
+                style={{ background: '#0C0F17', border: '1px solid #253044', color: '#A8B4C8' }}
+              >
+                Voir la démo
+              </Link>
+            </div>
+            <div className="flex flex-wrap gap-4">
+              {['Gratuit jusqu\'à 3 protocoles/mois', 'Sans carte bancaire', 'Export PDF inclus'].map(t => (
+                <div key={t} className="flex items-center gap-1.5 text-xs" style={{ color: '#5A6880' }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <circle cx="6" cy="6" r="5" stroke="#00C896" strokeWidth="1.5"/>
+                    <path d="M3.5 6l2 2 3-3" stroke="#00C896" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  {t}
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Droite — image hero + carte protocole preview */}
+          <div className="space-y-4">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ border: '1px solid #1D2333' }}>
+              <Image
+                src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200"
+                alt="Kinésithérapeute en consultation avec un patient"
+                width={600}
+                height={300}
+                className="object-cover w-full"
+                priority
+              />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(8,10,15,0.7) 0%, transparent 60%)' }} />
+            </div>
+          <div className="rounded-2xl p-6 space-y-4" style={{ background: '#0C0F17', border: '1px solid #1D2333' }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="inline-flex text-xs font-medium px-3 py-1 rounded-full" style={{ background: 'rgba(0,200,150,0.1)', border: '1px solid rgba(0,200,150,0.2)', color: '#00C896' }}>
+                  Lombalgie chronique
+                </div>
+                <p className="font-display font-bold text-base mt-2" style={{ color: '#EDF2F8' }}>Phase 2 — Renforcement</p>
+                <p className="text-xs mt-0.5" style={{ color: '#5A6880' }}>6 semaines · 3×/semaine · Modérée</p>
+              </div>
+            </div>
+            <div style={{ borderTop: '1px solid #1D2333' }} />
+            <div className="space-y-2">
+              {[
+                { n: 1, label: 'Stabilisation lombaire active', params: '3 × 12 rép.', c: '#00C896' },
+                { n: 2, label: 'Gainage antérieur progressif', params: '3 × 30s', c: '#eab308' },
+                { n: 3, label: 'Mobilisation lombopelvienne', params: '2 × 15 rép.', c: '#00C896' },
+              ].map(ex => (
+                <div key={ex.n} className="flex items-center gap-3 p-3 rounded-lg" style={{ background: '#111520' }}>
+                  <span className="w-6 h-6 rounded text-xs font-bold flex items-center justify-center shrink-0"
+                    style={{ background: `${ex.c}20`, color: ex.c }}>{ex.n}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate" style={{ color: '#EDF2F8' }}>{ex.label}</p>
+                    <p className="text-xs" style={{ color: '#5A6880' }}>{ex.params}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 text-xs" style={{ color: '#5A6880' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00C896" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Document patient généré · PDF prêt
+            </div>
+          </div>
+          </div>
         </div>
       </section>
 
-      {/* Pain points */}
-      <section className="bg-slate-50 dark:bg-slate-900 py-16">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-2xl font-bold text-center mb-10">Le problème que vous connaissez bien</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* ── Stats ── */}
+      <section style={{ borderTop: '1px solid #1D2333', borderBottom: '1px solid #1D2333' }}>
+        <div className="max-w-6xl mx-auto px-6 py-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { icon: '⏱️', text: '20 minutes perdues par protocole rédigé à la main' },
-              { icon: '📄', text: 'Des documents patients génériques, peu engageants' },
-              { icon: '🔄', text: 'Reprendre de zéro à chaque nouvelle pathologie' },
-            ].map((p) => (
-              <div key={p.text} className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 text-center space-y-3">
-                <div className="text-4xl">{p.icon}</div>
-                <p className="text-slate-700 dark:text-slate-300 font-medium">{p.text}</p>
+              { val: '30s', label: 'Génération d\'un protocole complet' },
+              { val: '3', label: 'Agents IA spécialisés coordonnés' },
+              { val: '100%', label: 'Basé sur Cochrane, JOSPT, Maitland' },
+              { val: '2', label: 'Documents générés praticien + patient' },
+            ].map(s => (
+              <div key={s.val} className="text-center space-y-1">
+                <div className="font-display font-extrabold text-3xl" style={{ color: '#00C896' }}>{s.val}</div>
+                <p className="text-xs" style={{ color: '#5A6880' }}>{s.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Comment ça marche */}
-      <section className="py-16 max-w-4xl mx-auto px-4">
-        <h2 className="text-2xl font-bold text-center mb-12">Comment ça marche</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* ── How it works ── */}
+      <section id="how" className="max-w-6xl mx-auto px-6 py-24">
+        <div className="text-center mb-16">
+          <h2 className="font-display font-bold text-3xl" style={{ color: '#EDF2F8' }}>Comment ça marche</h2>
+        </div>
+        <div className="grid md:grid-cols-3 gap-8">
           {[
             {
-              step: '1',
-              duration: '30 secondes',
-              title: 'Vous entrez',
-              desc: 'Pathologie, phase clinique, contexte patient (âge, sport, niveau)',
+              num: '01',
+              title: 'Renseignez le contexte',
+              body: 'Pathologie, phase de rééducation, âge du patient, contre-indications éventuelles, objectif de séance. Formulaire structuré, 45 secondes à remplir.',
             },
             {
-              step: '2',
-              duration: '15 secondes',
-              title: '3 agents IA génèrent',
-              desc: 'Protocole structuré + exercices enrichis avec description, cues et erreurs fréquentes',
+              num: '02',
+              title: 'L\'IA génère le protocole',
+              body: 'Trois agents Claude travaillent en parallèle : protocole praticien structuré, document patient en langage accessible, alertes contre-indications.',
             },
             {
-              step: '3',
-              duration: 'Immédiat',
-              title: 'Vous obtenez',
-              desc: 'Protocole kiné complet + PDF patient imprimable et personnalisé',
+              num: '03',
+              title: 'Exportez et partagez',
+              body: 'Export PDF en un clic. Document praticien et document patient séparés. Archivé dans votre historique, retrouvable en quelques secondes.',
             },
-          ].map((s, i) => (
-            <div key={i} className="relative text-center space-y-3">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-600 text-white font-bold text-xl">
-                {s.step}
-              </div>
-              <div className="text-xs text-blue-600 font-medium">{s.duration}</div>
-              <h3 className="font-bold text-lg">{s.title}</h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">{s.desc}</p>
+          ].map(s => (
+            <div key={s.num} className="space-y-4">
+              <div className="font-display font-extrabold text-6xl" style={{ color: '#1D2333' }}>{s.num}</div>
+              <h3 className="font-display font-bold text-lg" style={{ color: '#EDF2F8' }}>{s.title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: '#A8B4C8' }}>{s.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Exemple protocole */}
-      <section id="demo" className="bg-slate-50 dark:bg-slate-900 py-16">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-2xl font-bold text-center mb-8">Exemple de protocole généré</h2>
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm space-y-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-lg">Entorse latérale de cheville</h3>
-                <p className="text-sm text-slate-500">Phase Renforcement · Patient 32 ans, football amateur</p>
+      {/* ── Features ── */}
+      <section className="max-w-6xl mx-auto px-6 pb-24">
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Grande card 2/3 */}
+          <div className="md:col-span-2 rounded-2xl p-8 space-y-4" style={{ background: '#0C0F17', border: '1px solid #1D2333' }}>
+            <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: 'rgba(0,200,150,0.1)' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+            </div>
+            <h3 className="font-display font-bold text-xl" style={{ color: '#EDF2F8' }}>Agent Protocole Clinique</h3>
+            <p className="text-sm leading-relaxed" style={{ color: '#A8B4C8' }}>
+              Protocole complet avec exercices, séries, répétitions, temps de repos, progressions. Structuré selon les recommandations evidence-based.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {['Cochrane', 'JOSPT', 'Maitland', 'Explain Pain'].map(tag => (
+                <span key={tag} className="text-xs px-2.5 py-1 rounded-full" style={{ background: 'rgba(0,200,150,0.08)', border: '1px solid rgba(0,200,150,0.2)', color: '#00C896' }}>{tag}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* 2 petites cards */}
+          <div className="space-y-6">
+            <div className="rounded-2xl p-6 space-y-3" style={{ background: '#0C0F17', border: '1px solid #1D2333' }}>
+              <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: 'rgba(0,200,150,0.1)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
               </div>
-              <span className="bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full">Démo</span>
+              <h3 className="font-display font-bold text-base" style={{ color: '#EDF2F8' }}>Document patient</h3>
+              <p className="text-xs" style={{ color: '#A8B4C8' }}>Réécrit en langage accessible automatiquement.</p>
+              <span className="text-xs font-medium" style={{ color: '#5A6880' }}>Généré automatiquement</span>
             </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Objectifs</p>
-              <ul className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
-                {[
-                  'Renforcer les muscles fibulaires et le triceps sural',
-                  'Améliorer la proprioception cheville à vitesse de jeu',
-                  'Préparer le retour aux appuis monopodaux dynamiques',
-                ].map((o) => (
-                  <li key={o} className="flex items-start gap-2">
-                    <span className="text-blue-500 mt-0.5">→</span> {o}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">Exercices</p>
-              <div className="space-y-3">
-                {[
-                  { name: 'Élévations unipodales sur plan instable', sets: '3 × 15 reps', rest: '45s' },
-                  { name: 'Renforcement excentrique fibulaires sur step', sets: '4 × 12 reps', rest: '60s' },
-                  { name: 'Saut latéral monopodal avec réception contrôlée', sets: '3 × 8 reps', rest: '90s' },
-                ].map((ex) => (
-                  <div key={ex.name} className="flex items-center justify-between bg-slate-50 dark:bg-slate-900 rounded-lg p-3">
-                    <div>
-                      <p className="text-sm font-medium">{ex.name}</p>
-                      <p className="text-xs text-slate-500">{ex.sets} · Repos {ex.rest}</p>
-                    </div>
-                  </div>
-                ))}
+            <div className="rounded-2xl p-6 space-y-3" style={{ background: '#0C0F17', border: '1px solid #1D2333' }}>
+              <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: 'rgba(0,200,150,0.1)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C896" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
               </div>
+              <h3 className="font-display font-bold text-base" style={{ color: '#EDF2F8' }}>Alertes intelligentes</h3>
+              <p className="text-xs" style={{ color: '#A8B4C8' }}>Détection automatique des contre-indications.</p>
+              <span className="text-xs font-medium" style={{ color: '#5A6880' }}>Sécurité clinique</span>
             </div>
-
-            <Button className="w-full" disabled>
-              Voir le PDF patient complet →
-            </Button>
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section className="py-16 max-w-5xl mx-auto px-4">
-        <h2 className="text-2xl font-bold text-center mb-4">Tarifs simples, sans surprise</h2>
-        <p className="text-center text-slate-500 mb-10">Commencez gratuitement, passez au Pro quand vous êtes prêt.</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {(Object.entries(PLANS) as [keyof typeof PLANS, typeof PLANS[keyof typeof PLANS]][]).map(([key, plan]) => (
-            <div
-              key={key}
-              className={`rounded-2xl border p-6 space-y-5 ${
-                key === 'PRO'
-                  ? 'border-blue-500 border-2 shadow-lg relative'
-                  : 'border-slate-200 dark:border-slate-700'
-              }`}
-            >
-              {key === 'PRO' && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-medium">
-                  Recommandé
+      {/* ── Démo produit 3 colonnes ── */}
+      <section id="demo" style={{ borderTop: '1px solid #1D2333' }}>
+        <div className="max-w-6xl mx-auto px-6 py-24">
+          <div className="text-center mb-14">
+            <h2 className="font-display font-bold text-3xl mb-4" style={{ color: '#EDF2F8' }}>
+              Ce que génère KinéProtocol en 30 secondes
+            </h2>
+            <p className="text-sm" style={{ color: '#A8B4C8' }}>
+              Exemple réel · Tendinopathie rotulienne, Phase 2 aiguë, patient sédentaire 45 ans
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 items-start">
+            {/* Colonne 1 : Input */}
+            <div className="rounded-2xl p-6 space-y-4" style={{ background: '#0C0F17', border: '1px solid #1D2333' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={{ background: 'rgba(0,200,150,0.15)', color: '#00C896' }}>1</div>
+                <span className="text-sm font-semibold" style={{ color: '#EDF2F8' }}>Votre bilan</span>
+              </div>
+              {[
+                { label: 'Pathologie', value: 'Tendinopathie rotulienne' },
+                { label: 'Phase', value: 'Phase 2 — Aiguë' },
+                { label: 'Contexte patient', value: 'Homme 45 ans, sédentaire, douleur VAS 6/10' },
+              ].map(field => (
+                <div key={field.label}>
+                  <p className="text-xs font-medium mb-1" style={{ color: '#5A6880' }}>{field.label}</p>
+                  <p className="text-sm px-3 py-2 rounded-lg" style={{ background: '#080A0F', color: '#A8B4C8', border: '1px solid #1D2333' }}>{field.value}</p>
                 </div>
-              )}
+              ))}
+            </div>
+            {/* Colonne 2 : Traitement IA */}
+            <div className="rounded-2xl p-6 flex flex-col items-center justify-center gap-4 min-h-[200px]"
+              style={{ background: 'rgba(0,200,150,0.05)', border: '1px solid rgba(0,200,150,0.2)' }}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                style={{ background: 'rgba(0,200,150,0.12)' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00C896" strokeWidth="1.5">
+                  <path d="M12 2a2 2 0 012 2v2a2 2 0 01-2 2 2 2 0 01-2-2V4a2 2 0 012-2z"/>
+                  <path d="M4 12a2 2 0 012-2h2a2 2 0 012 2 2 2 0 01-2 2H6a2 2 0 01-2-2z"/>
+                  <path d="M14 12a2 2 0 012-2h2a2 2 0 012 2 2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  <path d="M12 14a2 2 0 012 2v2a2 2 0 01-2 2 2 2 0 01-2-2v-2a2 2 0 012-2z"/>
+                </svg>
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-semibold mb-1" style={{ color: '#EDF2F8' }}>KinéProtocol AI</p>
+                <p className="text-xs" style={{ color: '#5A6880' }}>Cochrane · JOSPT · Maitland</p>
+              </div>
+              {['Protocol Designer', 'Exercise Librarian', 'Patient Writer'].map(agent => (
+                <div key={agent} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs w-full"
+                  style={{ background: 'rgba(0,200,150,0.08)', color: '#00C896' }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />{agent}
+                </div>
+              ))}
+            </div>
+            {/* Colonne 3 : Output */}
+            <div className="rounded-2xl p-6 space-y-4" style={{ background: '#0C0F17', border: '1px solid #1D2333' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={{ background: 'rgba(0,200,150,0.15)', color: '#00C896' }}>3</div>
+                <span className="text-sm font-semibold" style={{ color: '#EDF2F8' }}>Protocole généré</span>
+              </div>
               <div>
-                <h3 className="font-bold text-lg">{plan.name}</h3>
-                <div className="mt-1">
-                  {plan.price === 0 ? (
-                    <span className="text-3xl font-extrabold">Gratuit</span>
-                  ) : (
-                    <span className="text-3xl font-extrabold">
-                      {(plan.price / 100).toFixed(0)}€
-                      <span className="text-base font-normal text-slate-500">/mois</span>
-                    </span>
-                  )}
+                <p className="text-xs font-medium mb-2" style={{ color: '#00C896' }}>Objectifs</p>
+                <ul className="text-xs space-y-1" style={{ color: '#A8B4C8' }}>
+                  <li>• Réduire la douleur rotulienne (VAS &lt; 3)</li>
+                  <li>• Renforcer le quadriceps en excentrique</li>
+                  <li>• Reprendre les escaliers sans compensation</li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs font-medium mb-2" style={{ color: '#00C896' }}>Exercices — Semaine 1–2</p>
+                <div className="space-y-2">
+                  {[
+                    { n: 1, name: 'Squat excentrique sur marche', sets: '3 × 15 reps · 6s descente' },
+                    { n: 2, name: 'Isométrique quadriceps 60°', sets: '5 × 45s · douleur max 3/10' },
+                    { n: 3, name: 'Vélo stationnaire doux', sets: '2 × 10 min · FC < 120 bpm' },
+                  ].map(ex => (
+                    <div key={ex.n} className="flex gap-2 p-2 rounded-lg" style={{ background: '#080A0F' }}>
+                      <span className="text-xs font-bold w-4 shrink-0 mt-0.5" style={{ color: '#00C896' }}>{ex.n}.</span>
+                      <div>
+                        <p className="text-xs font-medium" style={{ color: '#EDF2F8' }}>{ex.name}</p>
+                        <p className="text-[11px]" style={{ color: '#5A6880' }}>{ex.sets}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <ul className="space-y-2">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm">
-                    <span className="text-green-500">✓</span> {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/login" className="block">
-                <Button className="w-full" variant={key === 'PRO' ? 'default' : 'outline'}>
-                  Commencer {plan.price === 0 ? 'gratuitement' : `à ${(plan.price / 100).toFixed(0)}€/mois`}
-                </Button>
-              </Link>
+              <div className="flex items-center gap-2 pt-1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00C896" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+                <span className="text-xs" style={{ color: '#5A6880' }}>Document patient simplifié inclus (PDF)</span>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="bg-slate-50 dark:bg-slate-900 py-16">
-        <div className="max-w-2xl mx-auto px-4 space-y-6">
-          <h2 className="text-2xl font-bold text-center mb-10">Questions fréquentes</h2>
-          {[
-            {
-              q: "Est-ce que l'IA remplace le jugement clinique ?",
-              a: "Non. KinéProtocol AI génère un brouillon que vous validez et adaptez. Vous restez l'expert.",
-            },
-            {
-              q: 'Puis-je personnaliser les protocoles générés ?',
-              a: 'Oui, chaque protocole est éditable après génération.',
-            },
-            {
-              q: 'Les données de mes patients sont-elles sécurisées ?',
-              a: "Aucune donnée patient nominative n'est transmise à l'IA. Vous entrez uniquement âge, sport et niveau.",
-            },
-            {
-              q: 'Quels pays sont supportés ?',
-              a: 'France, Suisse et Canada francophone. Paiement en EUR et CHF.',
-            },
-            {
-              q: 'Puis-je annuler mon abonnement ?',
-              a: "Oui, à tout moment depuis votre espace facturation. Pas d'engagement.",
-            },
-          ].map(({ q, a }) => (
-            <div key={q} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
-              <p className="font-semibold text-slate-900 dark:text-slate-100">{q}</p>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mt-2">{a}</p>
-            </div>
-          ))}
+      {/* ── Témoignage ── */}
+      <section style={{ borderTop: '1px solid #1D2333' }}>
+        <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+          <svg className="mx-auto mb-6 opacity-30" width="32" height="32" viewBox="0 0 24 24" fill="#00C896">
+            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+          </svg>
+          <blockquote className="font-display font-bold text-xl leading-relaxed mb-6" style={{ color: '#EDF2F8' }}>
+            &ldquo;En 2 ans de pratique je passais 20 min par bilan à rédiger. Maintenant c&apos;est 30 secondes.&rdquo;
+          </blockquote>
+          <p className="text-sm" style={{ color: '#5A6880' }}>Dr. Sophie M. · Kinésithérapeute libérale, Lyon</p>
         </div>
       </section>
 
-      {/* CTA final */}
-      <section className="py-20 text-center px-4">
-        <h2 className="text-3xl font-extrabold mb-4">Prêt à gagner 2h par jour ?</h2>
-        <p className="text-slate-500 dark:text-slate-400 mb-8">
-          Aucune carte bancaire requise · 3 protocoles offerts · Annulation libre
-        </p>
-        <Link href="/login">
-          <Button size="lg">Commencer gratuitement</Button>
-        </Link>
+      {/* ── Pricing ── */}
+      <section id="pricing" style={{ borderTop: '1px solid #1D2333' }}>
+        <div className="max-w-6xl mx-auto px-6 py-24">
+          <div className="text-center mb-16">
+            <h2 className="font-display font-bold text-3xl" style={{ color: '#EDF2F8' }}>Tarifs simples</h2>
+            <p className="mt-3 text-sm" style={{ color: '#A8B4C8' }}>Commencez gratuitement, passez au Pro quand vous êtes prêt.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                name: 'FREE',
+                price: '0€',
+                period: 'Pour toujours',
+                badge: null as string | null,
+                features: ['3 protocoles/mois', 'Export PDF avec filigrane', 'Document praticien + patient'],
+                cta: 'Commencer gratuitement',
+                highlight: false,
+              },
+              {
+                name: 'Pro',
+                price: '29€',
+                period: 'par mois',
+                badge: 'Le plus populaire' as string | null,
+                features: ['Protocoles illimités', 'Sans filigrane', 'Historique complet', 'Support prioritaire'],
+                cta: 'Commencer en Pro',
+                highlight: true,
+              },
+              {
+                name: 'Cabinet',
+                price: '79€',
+                period: 'par mois · jusqu\'à 5 praticiens',
+                badge: null as string | null,
+                features: ['Tout du Pro', '5 comptes praticiens', 'Analytics cabinet', 'Onboarding dédié'],
+                cta: 'Contacter l\'équipe',
+                highlight: false,
+              },
+            ].map(plan => (
+              <div
+                key={plan.name}
+                className="rounded-2xl p-8 space-y-6 relative"
+                style={{
+                  background: plan.highlight ? 'rgba(0,200,150,0.05)' : '#0C0F17',
+                  border: plan.highlight ? '1px solid rgba(0,200,150,0.4)' : '1px solid #1D2333',
+                }}
+              >
+                {plan.badge && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full"
+                    style={{ background: '#00C896', color: '#080A0F' }}>
+                    {plan.badge}
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-display font-bold text-lg" style={{ color: '#EDF2F8' }}>{plan.name}</h3>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="font-display font-extrabold text-3xl" style={{ color: '#EDF2F8' }}>{plan.price}</span>
+                    <span className="text-sm" style={{ color: '#5A6880' }}>{plan.period}</span>
+                  </div>
+                </div>
+                <ul className="space-y-2.5">
+                  {plan.features.map(f => (
+                    <li key={f} className="flex items-center gap-2.5 text-sm" style={{ color: '#A8B4C8' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00C896" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/login"
+                  className="block text-center py-3 rounded-xl text-sm font-medium transition-all"
+                  style={plan.highlight ? { background: '#00C896', color: '#080A0F' } : { background: '#111520', border: '1px solid #253044', color: '#A8B4C8' }}
+                >
+                  {plan.cta}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-100 dark:border-slate-800 py-6 text-center text-sm text-slate-400">
-        © {new Date().getFullYear()} KinéProtocol AI · Mentions légales · Contact
+      {/* ── CTA final ── */}
+      <section style={{ borderTop: '1px solid #1D2333' }}>
+        <div className="max-w-3xl mx-auto px-6 py-24 text-center space-y-6">
+          <p className="text-xs uppercase tracking-widest" style={{ color: '#00C896' }}>Prêt à commencer ?</p>
+          <h2 className="font-display font-bold text-4xl" style={{ color: '#EDF2F8' }}>
+            Votre premier protocole en 30 secondes.
+          </h2>
+          <p className="text-sm" style={{ color: '#A8B4C8' }}>
+            Rejoignez les kinésithérapeutes qui ont déjà automatisé la rédaction de leurs protocoles.
+          </p>
+          <Link
+            href="/login"
+            className="inline-flex btn-shimmer items-center justify-center px-8 py-3.5 rounded-xl text-sm font-bold"
+            style={{ color: '#080A0F' }}
+          >
+            Générer mon premier protocole →
+          </Link>
+          <p className="text-xs" style={{ color: '#5A6880' }}>
+            Aucune carte bancaire · Résiliation en 1 clic · Support en français
+          </p>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer style={{ borderTop: '1px solid #1D2333' }}>
+        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs" style={{ color: '#5A6880' }}>© 2025 KinéProtocol AI · Conçu à Montréal</p>
+          <div className="flex items-center gap-6">
+            {['Mentions légales', 'Confidentialité', 'Contact'].map(l => (
+              <a key={l} href="#" className="text-xs transition-colors" style={{ color: '#5A6880' }}>{l}</a>
+            ))}
+          </div>
+        </div>
       </footer>
     </div>
   )

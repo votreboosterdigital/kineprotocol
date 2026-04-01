@@ -35,13 +35,15 @@ export async function proxy(request: NextRequest) {
   const isPublic =
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/landing') ||
+    request.nextUrl.pathname.startsWith('/demo') ||
+    request.nextUrl.pathname.startsWith('/pricing') ||
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/api')
 
   if (!session && !isPublic) {
-    const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = '/login'
-    const redirectResponse = NextResponse.redirect(loginUrl)
+    const landingUrl = request.nextUrl.clone()
+    landingUrl.pathname = '/landing'
+    const redirectResponse = NextResponse.redirect(landingUrl)
     // Copier les cookies Supabase dans la réponse de redirection
     supabaseResponse.cookies.getAll().forEach(({ name, value, ...opts }) => {
       redirectResponse.cookies.set(name, value, opts as Parameters<typeof redirectResponse.cookies.set>[2])

@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils'
 import { LayoutDashboard, ClipboardList, Dumbbell, Stethoscope, LogOut, Menu, X, Settings } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/layout/ThemeToggle'
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -13,12 +12,6 @@ const navItems = [
   { href: '/exercises', label: 'Exercices', icon: Dumbbell },
   { href: '/pathologies', label: 'Pathologies', icon: Stethoscope },
 ]
-
-const PLAN_BADGE: Record<string, string> = {
-  FREE: 'bg-slate-700 text-slate-300',
-  PRO: 'bg-sky-900/60 text-sky-300',
-  CABINET: 'bg-violet-900/60 text-violet-300',
-}
 
 interface UserInfo {
   firstName: string | null
@@ -30,7 +23,8 @@ interface UserInfo {
 function UserAvatar({ firstName, lastName }: { firstName?: string | null; lastName?: string | null }) {
   const initials = [firstName, lastName].filter(Boolean).map(n => n![0].toUpperCase()).join('')
   return (
-    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
+      style={{ background: 'rgba(0,200,150,0.2)', color: '#00C896' }}>
       {initials || '?'}
     </div>
   )
@@ -53,16 +47,21 @@ export function Sidebar() {
   const sidebarContent = (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-6 border-b border-slate-700/60">
+      <div className="p-6" style={{ borderBottom: '1px solid #1D2333' }}>
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-bold text-white tracking-tight">KinéProtocol</h1>
-          <span className="bg-sky-500 text-white text-xs font-bold px-1.5 py-0.5 rounded">AI</span>
+          <h1 className="font-display font-bold text-[15px] tracking-tight" style={{ color: '#EDF2F8' }}>
+            KinéProtocol
+          </h1>
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,200,150,0.15)', color: '#00C896' }}>
+            AI
+          </span>
         </div>
-        <p className="text-xs text-slate-500 mt-1">Rééducation assistée par IA</p>
+        <p className="text-[11px] mt-1" style={{ color: '#5A6880' }}>Rééducation assistée par IA</p>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 p-4 space-y-0.5">
+        <p className="text-[9px] uppercase tracking-[1.5px] mb-3 px-3" style={{ color: '#5A6880' }}>Navigation</p>
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href
           return (
@@ -71,59 +70,73 @@ export function Sidebar() {
               href={href}
               onClick={() => setOpen(false)}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
-                active
-                  ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
+                'flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-150',
+                active ? 'border-r-2' : 'rounded-lg'
               )}
+              style={active ? {
+                background: 'rgba(0,200,150,0.1)',
+                color: '#00C896',
+                borderRightColor: '#00C896',
+              } : {
+                color: '#5A6880',
+                fontWeight: 300,
+              }}
+              onMouseEnter={e => {
+                if (!active) {
+                  ;(e.currentTarget as HTMLElement).style.color = '#A8B4C8'
+                  ;(e.currentTarget as HTMLElement).style.background = '#0C0F17'
+                }
+              }}
+              onMouseLeave={e => {
+                if (!active) {
+                  ;(e.currentTarget as HTMLElement).style.color = '#5A6880'
+                  ;(e.currentTarget as HTMLElement).style.background = ''
+                }
+              }}
             >
-              <Icon className={cn('h-4 w-4', active ? 'text-sky-400' : 'text-slate-500')} />
+              <Icon
+                className="h-4 w-4 shrink-0"
+                style={{ opacity: active ? 1 : 0.6, stroke: active ? '#00C896' : 'currentColor' }}
+              />
               {label}
-              {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-sky-400" />}
             </Link>
           )
         })}
       </nav>
 
       {/* Footer utilisateur */}
-      <div className="p-4 border-t border-slate-700/60 space-y-3">
-        {/* Profil */}
+      <div className="p-4 space-y-3" style={{ borderTop: '1px solid #1D2333' }}>
         <Link
           href="/profile"
           onClick={() => setOpen(false)}
-          className={cn(
-            'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 group',
-            pathname === '/profile'
-              ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
-              : 'hover:bg-slate-800'
-          )}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 group"
+          style={{ color: pathname === '/profile' ? '#00C896' : '#A8B4C8' }}
         >
           <UserAvatar firstName={user?.firstName} lastName={user?.lastName} />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-200 truncate">
+            <p className="text-sm font-medium truncate" style={{ color: '#EDF2F8' }}>
               {user?.firstName && user?.lastName
                 ? `${user.firstName} ${user.lastName}`
                 : user?.email?.split('@')[0] ?? 'Mon profil'}
             </p>
             {user?.plan && (
-              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${PLAN_BADGE[user.plan] ?? PLAN_BADGE.FREE}`}>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded"
+                style={{ background: 'rgba(0,200,150,0.1)', color: '#00C896' }}>
                 {user.plan}
               </span>
             )}
           </div>
-          <Settings className="h-3.5 w-3.5 text-slate-500 group-hover:text-slate-300 shrink-0 transition-colors" />
+          <Settings className="h-3.5 w-3.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+            style={{ color: '#5A6880' }} />
         </Link>
 
-        {/* Actions bas */}
-        <div className="flex items-center justify-between">
-          <ThemeToggle />
-          <form action="/auth/signout" method="post">
-            <Button variant="ghost" size="sm" type="submit" className="text-slate-400 hover:text-white hover:bg-slate-800 gap-1.5">
-              <LogOut className="h-3.5 w-3.5" />
-              <span className="text-xs">Déconnexion</span>
-            </Button>
-          </form>
-        </div>
+        <form action="/auth/signout" method="post">
+          <Button variant="ghost" size="sm" type="submit" className="w-full justify-start gap-1.5"
+            style={{ color: '#5A6880' }}>
+            <LogOut className="h-3.5 w-3.5" />
+            <span className="text-xs">Déconnexion</span>
+          </Button>
+        </form>
       </div>
     </div>
   )
@@ -132,7 +145,8 @@ export function Sidebar() {
     <>
       {/* Mobile hamburger */}
       <button
-        className="fixed top-4 left-4 z-50 md:hidden bg-slate-900 text-white p-2 rounded-md"
+        className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-md"
+        style={{ background: '#0C0F17', color: '#EDF2F8', border: '1px solid #1D2333' }}
         onClick={() => setOpen(!open)}
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -146,9 +160,10 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'w-64 min-h-screen bg-slate-900 text-slate-100 flex flex-col fixed md:static z-50 transition-transform duration-200',
+          'w-64 min-h-screen flex flex-col fixed z-50 transition-transform duration-200',
           open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
+        style={{ background: '#080A0F', borderRight: '1px solid #1D2333', color: '#EDF2F8' }}
       >
         {sidebarContent}
       </aside>

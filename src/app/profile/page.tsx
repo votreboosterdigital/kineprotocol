@@ -41,12 +41,23 @@ export default function ProfilePage() {
   const [form, setForm] = useState({ firstName: '', lastName: '', title: '', cabinetName: '', phone: '' })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 8000)
+
     Promise.all([
-      fetch('/api/profile').then(r => r.json()),
-      fetch('/api/billing/info').then(r => r.json()),
+      fetch('/api/profile', { signal: controller.signal }).then(r => {
+        if (!r.ok) throw new Error(`Profil: ${r.status}`)
+        return r.json()
+      }),
+      fetch('/api/billing/info', { signal: controller.signal }).then(r => {
+        if (!r.ok) return { plan: 'FREE' }
+        return r.json()
+      }),
     ]).then(([p, b]) => {
+      clearTimeout(timeout)
       setProfile(p)
       setPlan(b.plan ?? 'FREE')
       setForm({
@@ -56,7 +67,20 @@ export default function ProfilePage() {
         cabinetName: p.cabinetName ?? '',
         phone: p.phone ?? '',
       })
+    }).catch(err => {
+      clearTimeout(timeout)
+      console.error('Profile load error:', err)
+      if (err.name === 'AbortError') {
+        setLoadError('Le chargement a pris trop longtemps. Veuillez réessayer.')
+      } else {
+        setLoadError('Impossible de charger votre profil. Veuillez réessayer.')
+      }
     })
+
+    return () => {
+      clearTimeout(timeout)
+      controller.abort()
+    }
   }, [])
 
   async function handleSave(e: React.FormEvent) {
@@ -74,6 +98,17 @@ export default function ProfilePage() {
       setTimeout(() => setSaved(false), 3000)
     }
     setSaving(false)
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <p className="text-slate-400 text-sm">{loadError}</p>
+        <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+          Réessayer
+        </Button>
+      </div>
+    )
   }
 
   if (!profile) {
