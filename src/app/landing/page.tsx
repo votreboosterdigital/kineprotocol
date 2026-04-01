@@ -318,18 +318,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Témoignage ── */}
-      <section style={{ borderTop: '1px solid #1D2333' }}>
-        <div className="max-w-2xl mx-auto px-6 py-20 text-center">
-          <svg className="mx-auto mb-6 opacity-30" width="32" height="32" viewBox="0 0 24 24" fill="#00C896">
-            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-          </svg>
-          <blockquote className="font-display font-bold text-xl leading-relaxed mb-6" style={{ color: '#EDF2F8' }}>
-            &ldquo;En 2 ans de pratique je passais 20 min par bilan à rédiger. Maintenant c&apos;est 30 secondes.&rdquo;
-          </blockquote>
-          <p className="text-sm" style={{ color: '#5A6880' }}>Dr. Sophie M. · Kinésithérapeute libérale, Lyon</p>
-        </div>
-      </section>
 
       {/* ── Pricing ── */}
       <section id="pricing" style={{ borderTop: '1px solid #1D2333' }}>
