@@ -226,7 +226,25 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
           )}
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">{error}</div>
+            error.includes('Limite') || error.toLowerCase().includes('quota') ? (
+              <div className="p-4 rounded-lg space-y-2" style={{ background: 'rgba(0,200,150,0.05)', border: '1px solid rgba(0,200,150,0.2)' }}>
+                <p className="text-sm font-semibold" style={{ color: '#EDF2F8' }}>
+                  Vous avez utilisé vos 3 protocoles ce mois-ci
+                </p>
+                <p className="text-sm" style={{ color: '#A8B4C8' }}>
+                  Votre quota se renouvelle le 1er du mois prochain. Passez en Pro pour un accès illimité.
+                </p>
+                <a
+                  href="/billing"
+                  className="inline-block mt-1 text-sm font-medium px-3 py-1.5 rounded-lg"
+                  style={{ background: 'rgba(0,200,150,0.15)', color: '#00C896', border: '1px solid rgba(0,200,150,0.3)' }}
+                >
+                  Passer en Pro →
+                </a>
+              </div>
+            ) : (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">{error}</div>
+            )
           )}
 
           <div className="flex justify-between pt-2">
