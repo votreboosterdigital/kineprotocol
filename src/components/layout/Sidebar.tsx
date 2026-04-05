@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, ClipboardList, Dumbbell, Stethoscope, LogOut, Menu, X, Settings } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Dumbbell, Stethoscope, LogOut, Menu, X, Settings, CreditCard, Zap } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/protocols', label: 'Protocoles', icon: ClipboardList },
   { href: '/exercises', label: 'Exercices', icon: Dumbbell },
   { href: '/pathologies', label: 'Pathologies', icon: Stethoscope },
+  { href: '/billing', label: 'Facturation', icon: CreditCard },
 ]
 
 interface UserInfo {
@@ -103,6 +104,23 @@ export function Sidebar() {
           )
         })}
       </nav>
+
+      {/* Bandeau upgrade — FREE uniquement */}
+      {user?.plan === 'FREE' && (
+        <div className="mx-4 mb-2 rounded-lg p-3" style={{ background: 'rgba(0,200,150,0.07)', border: '1px solid rgba(0,200,150,0.2)' }}>
+          <p className="text-[11px] font-semibold mb-1 flex items-center gap-1.5" style={{ color: '#00C896' }}>
+            <Zap className="h-3 w-3" /> Passez en Pro
+          </p>
+          <p className="text-[10px] leading-relaxed" style={{ color: '#5A6880' }}>
+            3 protocoles/mois sur le plan gratuit. Débloquez l&apos;accès illimité.
+          </p>
+          <Link href="/billing" onClick={() => setOpen(false)}
+            className="mt-2 inline-block text-[10px] font-semibold rounded px-2 py-1 transition-opacity hover:opacity-80"
+            style={{ background: 'rgba(0,200,150,0.15)', color: '#00C896' }}>
+            Voir les tarifs →
+          </Link>
+        </div>
+      )}
 
       {/* Footer utilisateur */}
       <div className="p-4 space-y-3" style={{ borderTop: '1px solid #1D2333' }}>

@@ -3,7 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import type Stripe from 'stripe'
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse> {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
 
@@ -18,12 +18,22 @@ export async function POST(req: NextRequest) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
       const { userId, plan } = session.metadata!
+
+      // Récupère la subscription Stripe pour avoir currentPeriodEnd immédiatement
+      let currentPeriodEnd: Date | undefined
+      if (session.subscription) {
+        const stripeSub = await stripe.subscriptions.retrieve(session.subscription as string)
+        const item = stripeSub.items.data[0]
+        if (item) currentPeriodEnd = new Date(item.current_period_end * 1000)
+      }
+
       await prisma.subscription.update({
         where: { userId },
         data: {
           plan: plan as 'FREE' | 'PRO' | 'CABINET',
           stripeSubscriptionId: session.subscription as string,
           status: 'ACTIVE',
+          ...(currentPeriodEnd && { currentPeriodEnd }),
         },
       })
       break
@@ -55,6 +65,21 @@ export async function POST(req: NextRequest) {
         where: { stripeSubscriptionId: sub.id },
         data: { plan: 'FREE', status: 'CANCELED', stripeSubscriptionId: null },
       })
+      break
+    }
+
+    // Paiement échoué — passe en PAST_DUE pour bloquer l'accès aux features payantes
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object as Stripe.Invoice
+      // API v2026-03-25 : subscription est dans parent.subscription_details.subscription
+      const subId = invoice.parent?.subscription_details?.subscription
+      if (subId) {
+        const subscriptionId = typeof subId === 'string' ? subId : subId.id
+        await prisma.subscription.updateMany({
+          where: { stripeSubscriptionId: subscriptionId },
+          data: { status: 'PAST_DUE' },
+        })
+      }
       break
     }
   }
