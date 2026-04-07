@@ -14,7 +14,7 @@ import { useState } from 'react'
  *   - Type (choix : Bug, Suggestion, Général)
  * Puis remplacer PLACEHOLDER par l'ID du formulaire (ex: 'wABCDE')
  */
-const TALLY_FORM_ID = 'PLACEHOLDER'
+const TALLY_FORM_ID = process.env.NEXT_PUBLIC_TALLY_FORM_ID ?? 'PLACEHOLDER'
 
 type FeedbackType = 'bug' | 'suggestion' | 'general'
 
