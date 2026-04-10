@@ -11,6 +11,7 @@ export interface ProtocolDesignerInput {
   sessionDuration?: number
   sessionsPerWeek?: number
   constraints: string[]
+  literatureContext?: string
 }
 
 export interface ProtocolDesignerOutput {

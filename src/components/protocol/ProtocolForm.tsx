@@ -15,6 +15,17 @@ interface ProtocolFormProps {
   phases: Phase[]
 }
 
+// Type minimal pour les données de littérature affichées dans l'encadré
+interface LiteratureData {
+  clinicalConsensus: {
+    summary: string
+    validatedTreatments: Array<{ intervention: string; evidenceLevel: string; description: string }>
+  }
+  keyReferences: Array<{ title: string; authors: string; year: number; url: string }>
+  clinicalPearlsForProtocol: string[]
+  error?: string
+}
+
 const STEPS = [
   { label: 'Pathologie & Phase', desc: 'Contexte clinique' },
   { label: 'Contexte patient', desc: 'Profil du patient' },
@@ -34,6 +45,9 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
   const [loading, setLoading] = useState(false)
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [literatureData, setLiteratureData] = useState<LiteratureData | null>(null)
+  const [literatureLoading, setLiteratureLoading] = useState(false)
+  const [literatureOpen, setLiteratureOpen] = useState(false)
   const [form, setForm] = useState({
     pathologyId: '',
     phaseId: '',
@@ -53,6 +67,33 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
     return () => clearInterval(interval)
   }, [loading])
 
+  // Réinitialise les sources si la pathologie change
+  useEffect(() => {
+    setLiteratureData(null)
+    setLiteratureOpen(false)
+  }, [form.pathologyId])
+
+  const selectedPathologyName = pathologies.find(p => p.id === form.pathologyId)?.name ?? ''
+
+  async function handleEnrichLiterature() {
+    if (!selectedPathologyName) return
+    setLiteratureLoading(true)
+    try {
+      const res = await fetch('/api/literature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pathology: selectedPathologyName }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Erreur réseau')
+      setLiteratureData(json.data as LiteratureData)
+    } catch {
+      setLiteratureData(null)
+    } finally {
+      setLiteratureLoading(false)
+    }
+  }
+
   async function handleSubmit() {
     setLoading(true)
     setError(null)
@@ -70,6 +111,7 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
           sessionDuration: parseInt(form.sessionDuration),
           sessionsPerWeek: parseInt(form.sessionsPerWeek),
           constraints: form.constraints ? form.constraints.split('\n').filter(Boolean) : [],
+          literatureContext: literatureData ? JSON.stringify(literatureData) : undefined,
         }),
       })
       const data = await res.json()
@@ -159,6 +201,109 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Bouton enrichissement sources cliniques */}
+              {form.pathologyId && (
+                <button
+                  type="button"
+                  onClick={handleEnrichLiterature}
+                  disabled={literatureLoading || !!literatureData}
+                  className={cn(
+                    'w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-all duration-200',
+                    literatureData
+                      ? 'cursor-default opacity-60'
+                      : 'hover:bg-[#2D6A4F]/10 active:scale-[0.99]'
+                  )}
+                  style={{
+                    borderColor: 'rgba(45,106,79,0.4)',
+                    color: literatureData ? '#5a9e7a' : '#2D6A4F',
+                    background: literatureData ? 'rgba(45,106,79,0.05)' : 'transparent',
+                  }}
+                >
+                  {literatureLoading
+                    ? <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> Recherche en cours...</>
+                    : literatureData
+                    ? <><span style={{ color: '#2D6A4F' }}>✓</span> Sources cliniques chargées</>
+                    : <>📚 Enrichir avec sources cliniques</>
+                  }
+                </button>
+              )}
+
+              {/* Encadré de confirmation sources */}
+              {literatureData && !literatureData.error && (
+                <div
+                  className="rounded-lg overflow-hidden"
+                  style={{ border: '1px solid rgba(45,106,79,0.3)', background: 'rgba(45,106,79,0.06)' }}
+                >
+                  <div className="px-4 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium" style={{ color: '#2D6A4F' }}>
+                        ✓ Sources cliniques chargées
+                      </span>
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ background: 'rgba(45,106,79,0.15)', color: '#2D6A4F' }}
+                      >
+                        {literatureData.keyReferences?.length ?? 0} références
+                      </span>
+                      {literatureData.clinicalConsensus?.validatedTreatments?.length > 0 && (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{ background: 'rgba(45,106,79,0.10)', color: '#5a9e7a' }}
+                        >
+                          Niveau {literatureData.clinicalConsensus.validatedTreatments[0].evidenceLevel}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setLiteratureOpen(o => !o)}
+                      className="text-xs underline underline-offset-2 transition-colors"
+                      style={{ color: '#5a9e7a' }}
+                    >
+                      {literatureOpen ? 'Masquer' : 'Voir le détail'}
+                    </button>
+                  </div>
+
+                  {literatureOpen && (
+                    <div
+                      className="px-4 pb-4 space-y-3 border-t text-sm"
+                      style={{ borderColor: 'rgba(45,106,79,0.2)' }}
+                    >
+                      <p className="pt-3 text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                        {literatureData.clinicalConsensus?.summary}
+                      </p>
+                      {literatureData.clinicalPearlsForProtocol?.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold mb-1" style={{ color: '#2D6A4F' }}>Perles cliniques</p>
+                          <ul className="space-y-1">
+                            {literatureData.clinicalPearlsForProtocol.slice(0, 3).map((pearl, i) => (
+                              <li key={i} className="text-xs text-slate-500 flex items-start gap-1.5">
+                                <span style={{ color: '#2D6A4F' }}>•</span> {pearl}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs font-semibold mb-1" style={{ color: '#2D6A4F' }}>Références</p>
+                        <ul className="space-y-1">
+                          {literatureData.keyReferences?.slice(0, 4).map((ref, i) => (
+                            <li key={i} className="text-xs text-slate-500">
+                              {ref.authors} ({ref.year}).{' '}
+                              {ref.url
+                                ? <a href={ref.url} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: '#5a9e7a' }}>{ref.title}</a>
+                                : ref.title
+                              }
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label>Phase de rééducation *</Label>
                 <Select value={form.phaseId} onValueChange={(v) => setForm(f => ({ ...f, phaseId: v ?? '' }))}>
@@ -222,6 +367,15 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
                   rows={3}
                 />
               </div>
+              {/* Rappel sources si chargées */}
+              {literatureData && (
+                <div
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs"
+                  style={{ background: 'rgba(45,106,79,0.08)', color: '#5a9e7a', border: '1px solid rgba(45,106,79,0.2)' }}
+                >
+                  🔬 {literatureData.keyReferences?.length ?? 0} sources cliniques seront injectées dans la génération
+                </div>
+              )}
             </>
           )}
 

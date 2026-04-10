@@ -8,6 +8,23 @@ import Link from 'next/link'
 import type { ProtocolWithRelations } from '@/types/database'
 import type { PatientWriterOutput } from '@/types/agents'
 
+interface LiteratureReference {
+  title: string
+  authors: string
+  year: number
+  journal?: string
+  pmid?: string | null
+  url?: string
+}
+
+interface LiteratureCache {
+  keyReferences?: LiteratureReference[]
+  clinicalConsensus?: { summary?: string }
+  openDebates?: Array<{ topic: string; position1: string; position2: string }>
+  contraindications?: { absolute?: string[]; relative?: string[] }
+  clinicalPearlsForProtocol?: string[]
+}
+
 export default async function ProtocolDetailPage({
   params,
   searchParams,
@@ -38,6 +55,24 @@ export default async function ProtocolDetailPage({
     }
   }
 
+  // Récupération des sources cliniques depuis le cache si disponibles
+  const hasLiterature = (protocol as ProtocolWithRelations & { hasLiteratureContext?: boolean }).hasLiteratureContext
+  let literatureCache: LiteratureCache | null = null
+  if (hasLiterature) {
+    try {
+      const rows = await prisma.$queryRaw<Array<{ content: unknown }>>`
+        SELECT content FROM literature_cache
+        WHERE pathology = ${protocol.pathology.name.toLowerCase().trim()}
+        LIMIT 1
+      `
+      if (rows.length > 0) {
+        literatureCache = rows[0].content as LiteratureCache
+      }
+    } catch {
+      // cache non disponible — pas bloquant
+    }
+  }
+
   return (
     <div>
       {demo === 'true' && (
@@ -55,7 +90,7 @@ export default async function ProtocolDetailPage({
         title={`Protocole — ${protocol.pathology.name}`}
         description={`Phase: ${protocol.phase.name} · Créé le ${new Date(protocol.createdAt).toLocaleDateString('fr-FR')}`}
       />
-      <ProtocolViewer protocol={protocol} patientVersion={patientVersion} />
+      <ProtocolViewer protocol={protocol} patientVersion={patientVersion} literatureCache={literatureCache} />
     </div>
   )
 }

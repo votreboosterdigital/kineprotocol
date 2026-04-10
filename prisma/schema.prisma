@@ -74,8 +74,9 @@ model Protocol {
   progression      String[]
   sessionStructure Json
   rawAgentOutput   Json
-  patientVersion   String?
-  version          Int                @default(1)
+  patientVersion        String?
+  hasLiteratureContext  Boolean            @default(false)
+  version               Int                @default(1)
   exercises        ProtocolExercise[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt

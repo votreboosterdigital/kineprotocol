@@ -1,20 +1,41 @@
 'use client'
+import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
-import { Download } from 'lucide-react'
+import { Download, ChevronDown, ChevronRight } from 'lucide-react'
 import type { ProtocolWithRelations } from '@/types/database'
 import type { PatientWriterOutput } from '@/types/agents'
 import { EXERCISE_TYPE_FR, EXERCISE_LEVEL_FR } from '@/lib/i18n/exercises'
 
+interface LiteratureReference {
+  title: string
+  authors: string
+  year: number
+  journal?: string
+  pmid?: string | null
+  url?: string
+}
+
+interface LiteratureCache {
+  keyReferences?: LiteratureReference[]
+  clinicalConsensus?: { summary?: string }
+  openDebates?: Array<{ topic: string; position1: string; position2: string }>
+  contraindications?: { absolute?: string[]; relative?: string[] }
+  clinicalPearlsForProtocol?: string[]
+}
+
 interface ProtocolViewerProps {
   protocol: ProtocolWithRelations
   patientVersion: PatientWriterOutput | null
+  literatureCache?: LiteratureCache | null
 }
 
-export function ProtocolViewer({ protocol, patientVersion }: ProtocolViewerProps) {
+export function ProtocolViewer({ protocol, patientVersion, literatureCache }: ProtocolViewerProps) {
+  const [refsOpen, setRefsOpen] = useState(false)
+
   const sessionStructure = protocol.sessionStructure as {
     warmup: { duration: number; description: string }
     main: { duration: number; description: string }
@@ -32,6 +53,7 @@ export function ProtocolViewer({ protocol, patientVersion }: ProtocolViewerProps
         <TabsList>
           <TabsTrigger value="protocol">Protocole kiné</TabsTrigger>
           <TabsTrigger value="patient">Version patient</TabsTrigger>
+          {literatureCache && <TabsTrigger value="sources">🔬 Sources</TabsTrigger>}
           <TabsTrigger value="raw">Données brutes</TabsTrigger>
         </TabsList>
 
@@ -173,7 +195,151 @@ export function ProtocolViewer({ protocol, patientVersion }: ProtocolViewerProps
           )}
         </TabsContent>
 
-        {/* Tab 3 — Données brutes */}
+        {/* Tab 3 — Sources cliniques (si disponibles) */}
+        {literatureCache && (
+          <TabsContent value="sources" className="space-y-4">
+            {/* Accordéon — Base documentaire */}
+            <div
+              className="rounded-lg overflow-hidden"
+              style={{ border: '1px solid rgba(45,106,79,0.3)' }}
+            >
+              <button
+                type="button"
+                onClick={() => setRefsOpen(o => !o)}
+                className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors hover:bg-[#2D6A4F]/5"
+                style={{ background: 'rgba(45,106,79,0.06)' }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold text-sm" style={{ color: '#2D6A4F' }}>
+                    Base documentaire de ce protocole
+                  </span>
+                  <span
+                    className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(45,106,79,0.15)', color: '#2D6A4F' }}
+                  >
+                    {literatureCache.keyReferences?.length ?? 0} références
+                  </span>
+                </div>
+                {refsOpen
+                  ? <ChevronDown className="h-4 w-4" style={{ color: '#2D6A4F' }} />
+                  : <ChevronRight className="h-4 w-4" style={{ color: '#2D6A4F' }} />
+                }
+              </button>
+
+              {refsOpen && (
+                <div className="px-5 pb-5 pt-4 space-y-4">
+                  {literatureCache.clinicalConsensus?.summary && (
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {literatureCache.clinicalConsensus.summary}
+                    </p>
+                  )}
+                  {(literatureCache.keyReferences?.length ?? 0) > 0 && (
+                    <div className="space-y-2">
+                      {literatureCache.keyReferences!.map((ref, i) => (
+                        <div
+                          key={i}
+                          className="flex items-start gap-3 p-3 rounded-lg"
+                          style={{ background: 'rgba(45,106,79,0.04)', border: '1px solid rgba(45,106,79,0.12)' }}
+                        >
+                          <span
+                            className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold mt-0.5"
+                            style={{ background: 'rgba(45,106,79,0.15)', color: '#2D6A4F' }}
+                          >
+                            {i + 1}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            {ref.url ? (
+                              <a
+                                href={ref.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm font-medium leading-snug underline underline-offset-2 transition-colors"
+                                style={{ color: '#2D6A4F' }}
+                              >
+                                {ref.title}
+                              </a>
+                            ) : (
+                              <p className="text-sm font-medium leading-snug">{ref.title}</p>
+                            )}
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {ref.authors} — {ref.journal ?? ''} {ref.year}
+                              {ref.pmid && (
+                                <span className="ml-2 text-slate-400">PMID: {ref.pmid}</span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Débats ouverts */}
+            {(literatureCache.openDebates?.length ?? 0) > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base" style={{ color: '#2D6A4F' }}>Débats cliniques ouverts</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {literatureCache.openDebates!.map((debate, i) => (
+                    <div key={i} className="p-3 rounded-lg" style={{ background: 'rgba(45,106,79,0.04)', border: '1px solid rgba(45,106,79,0.12)' }}>
+                      <p className="text-sm font-medium mb-2">{debate.topic}</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="p-2 rounded text-xs text-slate-600 dark:text-slate-300" style={{ background: 'rgba(45,106,79,0.06)' }}>
+                          <span className="font-semibold block mb-1" style={{ color: '#2D6A4F' }}>Position A</span>
+                          {debate.position1}
+                        </div>
+                        <div className="p-2 rounded text-xs text-slate-600 dark:text-slate-300" style={{ background: 'rgba(45,106,79,0.06)' }}>
+                          <span className="font-semibold block mb-1" style={{ color: '#2D6A4F' }}>Position B</span>
+                          {debate.position2}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Contre-indications documentées */}
+            {(literatureCache.contraindications?.absolute?.length ?? 0) > 0 && (
+              <Card className="border-red-200 dark:border-red-800">
+                <CardHeader>
+                  <CardTitle className="text-base text-red-700 dark:text-red-400">Contre-indications documentées</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {(literatureCache.contraindications?.absolute?.length ?? 0) > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-red-600 mb-1">Absolues</p>
+                      <ul className="space-y-1">
+                        {literatureCache.contraindications!.absolute!.map((ci, i) => (
+                          <li key={i} className="text-sm text-slate-600 dark:text-slate-300 flex items-start gap-2">
+                            <span className="text-red-500">⚠</span> {ci}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {(literatureCache.contraindications?.relative?.length ?? 0) > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-amber-600 mb-1">Relatives</p>
+                      <ul className="space-y-1">
+                        {literatureCache.contraindications!.relative!.map((ci, i) => (
+                          <li key={i} className="text-sm text-slate-600 dark:text-slate-300 flex items-start gap-2">
+                            <span className="text-amber-500">•</span> {ci}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        )}
+
+        {/* Tab 4 — Données brutes */}
         <TabsContent value="raw">
           <Card>
             <CardHeader><CardTitle className="text-base">Output brut des agents (debug/audit)</CardTitle></CardHeader>

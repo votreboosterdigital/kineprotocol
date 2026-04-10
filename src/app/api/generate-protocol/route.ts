@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
       sessionDuration,
       sessionsPerWeek,
       constraints,
+      literatureContext,
     } = body
 
     // Chargement en parallèle de la pathologie et de la phase
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
       sessionDuration,
       sessionsPerWeek,
       constraints: constraints ?? [],
+      literatureContext: typeof literatureContext === 'string' ? literatureContext : undefined,
     }
 
     // Appel de l'agent Protocol Designer
@@ -129,6 +131,7 @@ export async function POST(req: NextRequest) {
         sessionStructure: protocolOutput.sessionStructure,
         rawAgentOutput: protocolOutput as object,
         patientVersion: JSON.stringify(patientOutput),
+        hasLiteratureContext: !!agentInput.literatureContext,
         exercises: {
           create: savedExercises.map((ex, idx) => ({
             exerciseId: ex.id,

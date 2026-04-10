@@ -93,9 +93,14 @@ Après inactivité prolongée : réduire volume de 50%(S1) / 30%(S2) / 20%(S3) /
 `
 
 export async function designProtocol(input: ProtocolDesignerInput): Promise<ProtocolDesignerOutput> {
+  // Bloc de littérature clinique vérifiée (optionnel — injecté si fourni)
+  const literatureBlock = input.literatureContext
+    ? `\n## Sources cliniques vérifiées pour cette pathologie\n${input.literatureContext}\nBaser les recommandations sur ces sources en priorité.\n`
+    : ''
+
   const prompt = `Tu es un kinésithérapeute expert en rééducation sportive et orthopédique.
 Tu dois générer un protocole de rééducation structuré et evidence-based, en appliquant systématiquement les guides cliniques de référence ci-dessous.
-
+${literatureBlock}
 ## Guide de référence clinique evidence-based
 ${CLINICAL_REFERENCE}
 

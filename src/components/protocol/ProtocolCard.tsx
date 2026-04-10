@@ -8,13 +8,30 @@ interface ProtocolCardProps {
 }
 
 export function ProtocolCard({ protocol }: ProtocolCardProps) {
+  // hasLiteratureContext est un champ optionnel (ajouté via migration manuelle)
+  const hasLiterature = (protocol as ProtocolWithRelations & { hasLiteratureContext?: boolean }).hasLiteratureContext
+
   return (
     <Link href={`/protocols/${protocol.id}`}>
       <Card className="hover:shadow-md transition-shadow cursor-pointer">
         <CardHeader className="pb-2">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-2">
             <CardTitle className="text-base">{protocol.pathology.name}</CardTitle>
-            <Badge variant="secondary">{protocol.phase.name}</Badge>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {hasLiterature && (
+                <span
+                  className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full"
+                  style={{
+                    background: 'rgba(45,106,79,0.12)',
+                    color: '#2D6A4F',
+                    border: '1px solid rgba(45,106,79,0.25)',
+                  }}
+                >
+                  🔬 Sources vérifiées
+                </span>
+              )}
+              <Badge variant="secondary">{protocol.phase.name}</Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
