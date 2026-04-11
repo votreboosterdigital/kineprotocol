@@ -9,6 +9,14 @@ import { Download, ChevronDown, ChevronRight } from 'lucide-react'
 import type { ProtocolWithRelations } from '@/types/database'
 import type { PatientWriterOutput } from '@/types/agents'
 import { EXERCISE_TYPE_FR, EXERCISE_LEVEL_FR } from '@/lib/i18n/exercises'
+import type { EnrichedExercise } from '@/types/agents'
+
+const PHASE_LABELS: Record<string, { label: string; color: string }> = {
+  load: { label: 'Charge', color: 'bg-zinc-700 text-zinc-300' },
+  neuromuscular: { label: 'Neuromusculaire', color: 'bg-teal-900/50 text-teal-300 border border-teal-800' },
+  functional: { label: 'Fonctionnel', color: 'bg-blue-900/50 text-blue-300 border border-blue-800' },
+  return_sport: { label: 'Retour sport', color: 'bg-amber-900/50 text-amber-300 border border-amber-800' },
+}
 
 interface LiteratureReference {
   title: string
@@ -87,31 +95,82 @@ export function ProtocolViewer({ protocol, patientVersion, literatureCache }: Pr
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader><CardTitle className="text-base">Exercices ({protocol.exercises.length})</CardTitle></CardHeader>
+          <Card className="border-zinc-800">
+            <CardHeader>
+              <CardTitle className="text-base text-zinc-100">
+                Exercices ({protocol.exercises.length})
+              </CardTitle>
+            </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {protocol.exercises.map(({ exercise, order, sets, reps, rest, notes }) => (
-                  <div key={exercise.id}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="font-medium">{order}. {exercise.name}</p>
-                        <p className="text-sm text-slate-500 mt-1">{exercise.description}</p>
-                        <div className="flex gap-4 mt-2 text-xs text-slate-500">
-                          {sets && <span>{sets} séries</span>}
-                          {reps && <span>× {reps}</span>}
-                          {rest && <span>Repos: {rest}</span>}
+              <div className="space-y-5">
+                {protocol.exercises.map(({ exercise, order, sets, reps, rest }) => {
+                  const raw = protocol.rawAgentOutput as { exercises?: EnrichedExercise[] }
+                  const enriched = raw.exercises?.find(
+                    (e) => e.order === order || e.name === exercise.name
+                  )
+
+                  return (
+                    <div key={exercise.id} className="space-y-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium text-zinc-100">{order}. {exercise.name}</p>
+                            {enriched?.phase && PHASE_LABELS[enriched.phase] && (
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PHASE_LABELS[enriched.phase].color}`}>
+                                {PHASE_LABELS[enriched.phase].label}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-zinc-500 mt-1">{exercise.description}</p>
+
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
+                            {(sets || enriched?.sets) && (reps || enriched?.reps) && (
+                              <span className="font-mono text-sm text-zinc-200">
+                                {sets ?? enriched?.sets} × {reps ?? enriched?.reps}
+                              </span>
+                            )}
+                            {rest && (
+                              <span className="font-mono text-xs text-zinc-500">repos {rest}</span>
+                            )}
+                            {enriched?.tempo && (
+                              <span className="font-mono text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                                {enriched.tempo}
+                              </span>
+                            )}
+                            {enriched?.rpe !== undefined && (
+                              <span className="font-mono text-xs px-2 py-0.5 rounded font-medium"
+                                style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)' }}>
+                                RPE {enriched.rpe}/10
+                              </span>
+                            )}
+                          </div>
+
+                          {enriched?.focus && (
+                            <p className="text-xs text-zinc-500 italic mt-1.5">
+                              💬 {enriched.focus}
+                            </p>
+                          )}
+
+                          {enriched?.progression && (
+                            <p className="text-xs mt-1" style={{ color: '#0D9488' }}>
+                              ✓ {enriched.progression}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex gap-1 flex-wrap ml-2">
+                          <Badge variant="outline" className="text-xs border-zinc-700 text-zinc-400">
+                            {EXERCISE_TYPE_FR[exercise.type]}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs border-zinc-700 text-zinc-400">
+                            {EXERCISE_LEVEL_FR[exercise.level]}
+                          </Badge>
                         </div>
                       </div>
-                      <div className="flex gap-1 flex-wrap ml-4">
-                        <Badge variant="outline" className="text-xs">{EXERCISE_TYPE_FR[exercise.type]}</Badge>
-                        <Badge variant="outline" className="text-xs">{EXERCISE_LEVEL_FR[exercise.level]}</Badge>
-                      </div>
+                      <Separator className="bg-zinc-800" />
                     </div>
-                    {notes && <p className="text-xs text-amber-600 mt-1">Note: {notes}</p>}
-                    <Separator className="mt-3" />
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </CardContent>
           </Card>
@@ -127,6 +186,53 @@ export function ProtocolViewer({ protocol, patientVersion, literatureCache }: Pr
               </ul>
             </CardContent>
           </Card>
+
+          {/* Section RTS — conditionnelle */}
+          {(() => {
+            const profile = protocol.patientProfile as { objective?: string } | null
+            if (!profile?.objective || !['return_sport', 'return_performance'].includes(profile.objective)) {
+              return null
+            }
+            return (
+              <Card className="border-zinc-800" style={{ borderColor: 'rgba(13,148,136,0.3)' }}>
+                <CardHeader>
+                  <CardTitle className="text-base" style={{ color: '#0D9488' }}>
+                    Jalons de progression
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {(['load', 'neuromuscular', 'functional', 'return_sport'] as const).map((ph) => {
+                      const raw = protocol.rawAgentOutput as { exercises?: EnrichedExercise[] }
+                      const isActive = raw.exercises?.some((e) => e.phase === ph)
+                      return (
+                        <span
+                          key={ph}
+                          className={`text-xs px-3 py-1 rounded-full font-medium transition-all ${
+                            isActive
+                              ? 'bg-[#0D9488] text-white'
+                              : 'bg-zinc-800 text-zinc-500'
+                          }`}
+                        >
+                          {PHASE_LABELS[ph]?.label ?? ph}
+                        </span>
+                      )
+                    })}
+                  </div>
+                  {profile.objective === 'return_performance' && (
+                    <p className="text-sm text-zinc-400">
+                      <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 mr-2">LSI</span>
+                      Force symétrie &gt;90% requise avant retour complet
+                    </p>
+                  )}
+                  <p className="text-sm text-zinc-500">
+                    <span style={{ color: '#0D9488' }}>✓</span>{' '}
+                    Règle du lendemain : douleur ou raideur disparue le matin suivant la séance
+                  </p>
+                </CardContent>
+              </Card>
+            )
+          })()}
         </TabsContent>
 
         {/* Tab 2 — Version patient */}
@@ -166,10 +272,40 @@ export function ProtocolViewer({ protocol, patientVersion, literatureCache }: Pr
                       <p className="text-sm text-sky-700 dark:text-sky-400 font-medium mt-1">{ex.sets}</p>
                       <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{ex.howTo}</p>
                       <p className="text-xs text-slate-500 mt-2 italic">💡 {ex.tip}</p>
+                      {'whenToDo' in ex && ex.whenToDo && (
+                        <p className="text-xs text-zinc-500 mt-1.5">
+                          🕐 {ex.whenToDo as string}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </CardContent>
               </Card>
+              {patientVersion.painEducation && (
+                <Card className="border-zinc-800 bg-zinc-900/30">
+                  <CardHeader>
+                    <CardTitle className="text-base text-zinc-200">Comprendre ta douleur</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-zinc-400 italic leading-relaxed">
+                      &quot;{patientVersion.painEducation.alarmMetaphor}&quot;
+                    </p>
+                    {patientVersion.painEducation.flareUpPlan?.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-zinc-400 mb-2">En cas de poussée douloureuse :</p>
+                        <ol className="space-y-1">
+                          {patientVersion.painEducation.flareUpPlan.map((flareStep, i) => (
+                            <li key={i} className="text-sm text-zinc-400 flex items-start gap-2">
+                              <span className="text-[#0D9488] font-bold flex-shrink-0">{i + 1}.</span>
+                              {flareStep}
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
               {patientVersion.importantWarnings.length > 0 && (
                 <Card className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
                   <CardHeader><CardTitle className="text-base text-red-700 dark:text-red-400">Signes d&apos;alarme</CardTitle></CardHeader>
