@@ -17,10 +17,10 @@ interface BillingInfo {
   stripeCustomerId: string | null
 }
 
-const PLAN_BADGE: Record<PlanKey, string> = {
-  FREE: 'bg-slate-100 text-slate-700',
-  PRO: 'bg-blue-100 text-blue-700',
-  CABINET: 'bg-purple-100 text-purple-700',
+const PLAN_BADGE: Record<PlanKey, { bg: string; color: string }> = {
+  FREE: { bg: '#1e2432', color: '#94a3b8' },
+  PRO: { bg: 'rgba(59,130,246,0.15)', color: '#60a5fa' },
+  CABINET: { bg: 'rgba(139,92,246,0.15)', color: '#a78bfa' },
 }
 
 export default function BillingPage() {
@@ -53,7 +53,7 @@ export default function BillingPage() {
     setPortalLoading(false)
   }
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Chargement...</div>
+  if (loading) return <div className="p-8 text-center text-muted-foreground">Chargement...</div>
 
   const currentPlan = info?.plan ?? 'FREE'
 
@@ -62,24 +62,24 @@ export default function BillingPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Facturation</h1>
-          <p className="text-slate-500 mt-1">Gérez votre abonnement KinéProtocol AI</p>
+          <p className="mt-1" style={{ color: '#64748b' }}>Gérez votre abonnement KinéProtocol AI</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-slate-500">Plan actuel :</span>
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${PLAN_BADGE[currentPlan]}`}>
+          <span className="text-sm" style={{ color: '#64748b' }}>Plan actuel :</span>
+          <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ background: PLAN_BADGE[currentPlan].bg, color: PLAN_BADGE[currentPlan].color }}>
             {PLANS[currentPlan].name}
           </span>
         </div>
       </div>
 
       {currentPlan === 'FREE' && info && (
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-          <p className="text-sm font-medium text-slate-700">
-            Protocoles ce mois-ci : <span className="font-bold">{info.current}/{info.limit}</span>
+        <div className="rounded-lg p-4" style={{ background: '#0e1117', border: '1px solid #1e2432' }}>
+          <p className="text-sm font-medium" style={{ color: '#94a3b8' }}>
+            Protocoles ce mois-ci : <span className="font-bold" style={{ color: '#edf2f8' }}>{info.current}/{info.limit}</span>
           </p>
-          <div className="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
+          <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: '#1e2432' }}>
             <div
-              className="h-full bg-blue-500 rounded-full transition-all"
+              className="h-full bg-sky-500 rounded-full transition-all"
               style={{ width: `${Math.min((info.current / info.limit) * 100, 100)}%` }}
             />
           </div>
@@ -106,7 +106,7 @@ export default function BillingPage() {
                     <span className="text-3xl font-bold">Gratuit</span>
                   ) : (
                     <span className="text-3xl font-bold">
-                      {(plan.price / 100).toFixed(0)}€<span className="text-base font-normal text-slate-500">/mois</span>
+                      {(plan.price / 100).toFixed(0)}€<span className="text-base font-normal text-muted-foreground">/mois</span>
                     </span>
                   )}
                 </div>
@@ -150,7 +150,7 @@ export default function BillingPage() {
           <Button variant="outline" onClick={handlePortal} disabled={portalLoading}>
             {portalLoading ? 'Redirection...' : 'Gérer mon abonnement →'}
           </Button>
-          <p className="text-xs text-slate-500 mt-2">Annulation, changement de carte, historique des paiements</p>
+          <p className="text-xs text-muted-foreground mt-2">Annulation, changement de carte, historique des paiements</p>
         </div>
       )}
     </div>

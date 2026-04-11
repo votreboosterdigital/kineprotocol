@@ -266,56 +266,56 @@ export default function DashboardPage() {
         {/* ── Métriques ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Total protocoles */}
-          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="rounded-xl p-5 shadow-sm" style={{ background: '#0e1117', border: '1px solid #1e2432' }}>
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-lg" style={{ background: 'rgba(56,189,248,0.1)' }}>
-                <ClipboardList className="h-4 w-4 text-sky-400" />
+                <ClipboardList className="h-4 w-4" style={{ color: '#38bdf8' }} />
               </div>
-              <span className="text-xs text-muted-foreground">Total</span>
+              <span className="text-xs" style={{ color: '#64748b' }}>Total</span>
             </div>
-            <p className="text-3xl font-bold text-foreground">{stats?.total ?? '—'}</p>
-            <p className="text-sm text-muted-foreground mt-0.5">Protocoles générés</p>
+            <p className="text-3xl font-bold" style={{ color: '#edf2f8' }}>{stats?.total ?? '—'}</p>
+            <p className="text-sm mt-0.5" style={{ color: '#64748b' }}>Protocoles générés</p>
           </div>
 
           {/* Ce mois */}
-          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="rounded-xl p-5 shadow-sm" style={{ background: '#0e1117', border: '1px solid #1e2432' }}>
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-lg" style={{ background: 'rgba(139,92,246,0.1)' }}>
-                <TrendingUp className="h-4 w-4 text-violet-400" />
+                <TrendingUp className="h-4 w-4" style={{ color: '#a78bfa' }} />
               </div>
-              <span className="text-xs text-muted-foreground">Ce mois</span>
+              <span className="text-xs" style={{ color: '#64748b' }}>Ce mois</span>
             </div>
-            <p className="text-3xl font-bold text-foreground">
+            <p className="text-3xl font-bold" style={{ color: '#edf2f8' }}>
               {stats ? stats.thisMonth : '—'}
               {stats && stats.limit < 999 && (
-                <span className="text-lg font-normal text-muted-foreground"> / {stats.limit}</span>
+                <span className="text-lg font-normal" style={{ color: '#64748b' }}> / {stats.limit}</span>
               )}
             </p>
-            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: '#1e2432' }}>
               <div
                 className={`h-full rounded-full transition-all duration-500 ${usageColor}`}
                 style={{ width: `${usagePct}%` }}
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs mt-1" style={{ color: '#64748b' }}>
               {stats?.limit === 999 ? 'Illimité' : `${stats?.limit ?? '—'} max · plan ${planInfo.label}`}
             </p>
           </div>
 
           {/* Plan */}
-          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <div className="rounded-xl p-5 shadow-sm" style={{ background: '#0e1117', border: '1px solid #1e2432' }}>
             <div className="flex items-center justify-between mb-3">
               <div className="p-2 rounded-lg" style={{ background: 'rgba(245,158,11,0.1)' }}>
-                <Sparkles className="h-4 w-4 text-amber-400" />
+                <Sparkles className="h-4 w-4" style={{ color: '#f59e0b' }} />
               </div>
               <Badge className={`text-xs font-medium border-0 ${planInfo.cls}`}>{planInfo.label}</Badge>
             </div>
-            <p className="text-lg font-bold text-foreground">Abonnement</p>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <p className="text-lg font-bold" style={{ color: '#edf2f8' }}>Abonnement</p>
+            <p className="text-sm mt-0.5" style={{ color: '#64748b' }}>
               {stats?.plan === 'FREE' ? '3 protocoles/mois inclus' :
                stats?.plan === 'PRO' ? '50 protocoles/mois' : 'Protocoles illimités'}
             </p>
-            <Link href="/billing" className="inline-flex items-center gap-1 text-xs text-sky-400 hover:underline mt-2">
+            <Link href="/billing" className="inline-flex items-center gap-1 text-xs hover:underline mt-2" style={{ color: '#38bdf8' }}>
               Gérer <ArrowUpRight className="h-3 w-3" />
             </Link>
           </div>
@@ -347,7 +347,7 @@ export default function DashboardPage() {
             <div className="space-y-2">
               {stats.recent.map((p) => (
                 <Link key={p.id} href={`/protocols/${p.id}`} className="block group">
-                  <div className="flex items-center gap-4 rounded-xl border border-border bg-card px-5 py-4 shadow-sm hover:border-sky-700 hover:shadow-md transition-all duration-150">
+                  <div className="flex items-center gap-4 rounded-xl px-5 py-4 shadow-sm transition-all duration-150" style={{ background: '#0e1117', border: '1px solid #1e2432' }}>
                     <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shrink-0 shadow-sm">
                       <ClipboardList className="h-4 w-4 text-white" />
                     </div>
