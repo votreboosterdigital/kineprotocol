@@ -1,6 +1,8 @@
 import { jsonrepair } from 'jsonrepair'
 import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic'
 import type { ProtocolDesignerInput, ProtocolDesignerOutput } from '@/types/agents'
+import { searchClinicalKnowledge } from '@/lib/rag/search-knowledge'
+import { buildClinicalContext } from '@/lib/agents/clinical-context'
 
 async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -93,14 +95,34 @@ Après inactivité prolongée : réduire volume de 50%(S1) / 30%(S2) / 20%(S3) /
 `
 
 export async function designProtocol(input: ProtocolDesignerInput): Promise<ProtocolDesignerOutput> {
+  // Recherche sémantique dans la base clinique vectorisée
+  const knowledgeChunks = await searchClinicalKnowledge(
+    `${input.pathologyName} ${input.phaseName} protocole rééducation`,
+    5
+  )
+  const knowledgeContext = knowledgeChunks.length > 0
+    ? `## Base de connaissances cliniques (sources vérifiées)\n` +
+      knowledgeChunks.map(c =>
+        `### Source: ${c.source_file}\n${c.content}`
+      ).join('\n\n') +
+      `\n\nUtilise ces connaissances comme base de raisonnement. ` +
+      `Ne copie jamais le texte source. Synthétise et adapte au cas clinique.\n`
+    : ''
+
   // Bloc de littérature clinique vérifiée (optionnel — injecté si fourni)
   const literatureBlock = input.literatureContext
     ? `\n## Sources cliniques vérifiées pour cette pathologie\n${input.literatureContext}\nBaser les recommandations sur ces sources en priorité.\n`
     : ''
 
+  // Contexte clinique SINS / stade / profil
+  const clinicalContext = buildClinicalContext(input.sins, input.stage, input.patientProfile)
+  const clinicalBlock = clinicalContext
+    ? `\n## Contexte clinique patient\n${clinicalContext}\n\nApplique STRICTEMENT ces directives dans le choix des exercices, de l'intensité (RPE), du tempo et de la progressivité.\n`
+    : ''
+
   const prompt = `Tu es un kinésithérapeute expert en rééducation sportive et orthopédique.
 Tu dois générer un protocole de rééducation structuré et evidence-based, en appliquant systématiquement les guides cliniques de référence ci-dessous.
-${literatureBlock}
+${knowledgeContext}${literatureBlock}${clinicalBlock}
 ## Guide de référence clinique evidence-based
 ${CLINICAL_REFERENCE}
 
@@ -108,19 +130,19 @@ ${CLINICAL_REFERENCE}
 - Pathologie : ${input.pathologyName} (région : ${input.region})
 - Phase : ${input.phaseName} (${input.phaseDescription})
 - Critères d'entrée en phase validés : ${input.phaseCriteria.join(', ')}
-- Âge patient : ${input.patientAge ?? 'non renseigné'}
-- Sport : ${input.patientSport ?? 'non sportif'}
-- Niveau : ${input.patientLevel ?? 'non renseigné'}
-- Durée séance disponible : ${input.sessionDuration ?? 45} min
-- Fréquence : ${input.sessionsPerWeek ?? 3}x/semaine
-- Contraintes spécifiques : ${input.constraints.length > 0 ? input.constraints.join(', ') : 'aucune'}
+- Âge : ${input.patientProfile?.age ?? input.patientAge ?? 'non renseigné'}
+- Sport : ${input.patientProfile?.sport ?? input.patientSport ?? 'non sportif'}
+- Niveau : ${input.patientProfile?.level ?? input.patientLevel ?? 'non renseigné'}
+- Durée séance : ${input.patientProfile?.sessionDuration ?? input.sessionDuration ?? 45} min
+- Fréquence : ${input.patientProfile?.sessionsPerWeek ?? input.sessionsPerWeek ?? 3}x/semaine
+- Contraintes : ${input.constraints.length > 0 ? input.constraints.join(', ') : 'aucune'}
 
 ## Ta mission
-Génère un protocole complet en JSON strict avec cette structure exacte :
+Génère un protocole complet en JSON strict :
 
 {
-  "objectives": ["objectif 1", "objectif 2", "objectif 3"],
-  "progressionCriteria": ["critère 1 pour passer à la phase suivante", "critère 2"],
+  "objectives": ["objectif 1", "objectif 2"],
+  "progressionCriteria": ["critère pour passer à la phase suivante"],
   "sessionStructure": {
     "warmup": { "duration": 10, "description": "..." },
     "main": { "duration": 25, "description": "..." },
@@ -135,19 +157,30 @@ Génère un protocole complet en JSON strict avec cette structure exacte :
       "level": "BEGINNER|INTERMEDIATE|ADVANCED",
       "equipment": ["matériel nécessaire"],
       "description": "Description technique précise pour le kiné",
-      "cues": ["consigne 1", "consigne 2"],
+      "cues": ["consigne technique 1"],
       "commonErrors": ["erreur fréquente 1"],
       "variants": ["variante plus facile", "variante plus difficile"],
       "sets": 3,
       "reps": "10-15",
       "rest": "60s",
+      "tempo": "3010",
+      "rpe": 6,
+      "focus": "Cue externe uniquement — ex: Poussez le sol loin de vous",
+      "progression": "Critère de passage — ex: RPE <4/10 le lendemain matin",
+      "phase": "load|neuromuscular|functional|return_sport",
       "order": 1
     }
   ],
-  "clinicalNotes": "Notes cliniques importantes pour le thérapeute"
+  "clinicalNotes": "Notes importantes pour le thérapeute"
 }
 
-Génère entre 5 et 8 exercices adaptés à la phase. Réponds UNIQUEMENT avec le JSON, sans markdown, sans commentaire.`
+Règles :
+- tempo : 4 chiffres (excentrique/pause haute/concentrique/pause basse) — ex: "3010"
+- rpe : entier 1-10 adapté au stade et au niveau patient
+- focus : cue EXTERNE uniquement (pas "contractez le muscle", mais "poussez le sol")
+- progression : critère mesurable et cliniquement pertinent
+- phase : choisir selon la progression thérapeutique
+- Génère 5 à 8 exercices. Réponds UNIQUEMENT avec le JSON.`
 
   const response = await withRetry(() => anthropic.messages.create({
     model: CLAUDE_MODEL,
