@@ -235,7 +235,7 @@ export default function DashboardPage() {
       <div className="space-y-8 max-w-5xl">
 
         {/* ── Hero greeting ── */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-800 dark:to-slate-900 border border-slate-700 p-8 shadow-xl">
+        <div className="relative overflow-hidden rounded-2xl border border-border p-8 shadow-xl" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
           {/* Motif décoratif */}
           <div className="absolute inset-0 opacity-5" style={{
             backgroundImage: 'radial-gradient(circle at 20% 50%, #38bdf8 0%, transparent 50%), radial-gradient(circle at 80% 20%, #818cf8 0%, transparent 40%)'
@@ -266,56 +266,56 @@ export default function DashboardPage() {
         {/* ── Métriques ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Total protocoles */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-sky-900/20">
-                <ClipboardList className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+              <div className="p-2 rounded-lg" style={{ background: 'rgba(56,189,248,0.1)' }}>
+                <ClipboardList className="h-4 w-4 text-sky-400" />
               </div>
-              <span className="text-xs text-slate-400">Total</span>
+              <span className="text-xs text-muted-foreground">Total</span>
             </div>
-            <p className="text-3xl font-bold text-zinc-100">{stats?.total ?? '—'}</p>
-            <p className="text-sm text-slate-500 mt-0.5">Protocoles générés</p>
+            <p className="text-3xl font-bold text-foreground">{stats?.total ?? '—'}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">Protocoles générés</p>
           </div>
 
           {/* Ce mois */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-violet-900/20">
-                <TrendingUp className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+              <div className="p-2 rounded-lg" style={{ background: 'rgba(139,92,246,0.1)' }}>
+                <TrendingUp className="h-4 w-4 text-violet-400" />
               </div>
-              <span className="text-xs text-slate-400">Ce mois</span>
+              <span className="text-xs text-muted-foreground">Ce mois</span>
             </div>
-            <p className="text-3xl font-bold text-zinc-100">
+            <p className="text-3xl font-bold text-foreground">
               {stats ? stats.thisMonth : '—'}
               {stats && stats.limit < 999 && (
-                <span className="text-lg font-normal text-slate-400"> / {stats.limit}</span>
+                <span className="text-lg font-normal text-muted-foreground"> / {stats.limit}</span>
               )}
             </p>
-            <div className="mt-2 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${usageColor}`}
                 style={{ width: `${usagePct}%` }}
               />
             </div>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               {stats?.limit === 999 ? 'Illimité' : `${stats?.limit ?? '—'} max · plan ${planInfo.label}`}
             </p>
           </div>
 
           {/* Plan */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-amber-900/20">
-                <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <div className="p-2 rounded-lg" style={{ background: 'rgba(245,158,11,0.1)' }}>
+                <Sparkles className="h-4 w-4 text-amber-400" />
               </div>
               <Badge className={`text-xs font-medium border-0 ${planInfo.cls}`}>{planInfo.label}</Badge>
             </div>
-            <p className="text-lg font-bold text-zinc-100">Abonnement</p>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-lg font-bold text-foreground">Abonnement</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
               {stats?.plan === 'FREE' ? '3 protocoles/mois inclus' :
                stats?.plan === 'PRO' ? '50 protocoles/mois' : 'Protocoles illimités'}
             </p>
-            <Link href="/billing" className="inline-flex items-center gap-1 text-xs text-sky-600 dark:text-sky-400 hover:underline mt-2">
+            <Link href="/billing" className="inline-flex items-center gap-1 text-xs text-sky-400 hover:underline mt-2">
               Gérer <ArrowUpRight className="h-3 w-3" />
             </Link>
           </div>
@@ -324,19 +324,19 @@ export default function DashboardPage() {
         {/* ── Activité récente ── */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-zinc-100">Activité récente</h2>
-            <Link href="/protocols" className="inline-flex items-center gap-1 text-sm text-sky-600 dark:text-sky-400 hover:underline">
+            <h2 className="text-base font-semibold text-foreground">Activité récente</h2>
+            <Link href="/protocols" className="inline-flex items-center gap-1 text-sm text-sky-400 hover:underline">
               Voir tout <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
 
           {!stats || stats.recent.length === 0 ? (
-            <div className="rounded-xl border-2 border-dashed border-zinc-800 p-10 text-center">
-              <div className="mx-auto w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-3">
-                <ClipboardList className="h-5 w-5 text-slate-400" />
+            <div className="rounded-xl border-2 border-dashed border-border p-10 text-center">
+              <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                <ClipboardList className="h-5 w-5 text-muted-foreground" />
               </div>
-              <p className="text-sm font-medium text-zinc-400">Aucun protocole pour l&apos;instant</p>
-              <p className="text-xs text-slate-400 mt-1">Générez votre premier protocole IA en moins de 4 minutes</p>
+              <p className="text-sm font-medium text-muted-foreground">Aucun protocole pour l&apos;instant</p>
+              <p className="text-xs text-muted-foreground mt-1">Générez votre premier protocole IA en moins de 4 minutes</p>
               <Link href="/protocols/new">
                 <Button size="sm" className="mt-4 gap-2">
                   <Plus className="h-4 w-4" /> Créer un protocole
@@ -347,17 +347,17 @@ export default function DashboardPage() {
             <div className="space-y-2">
               {stats.recent.map((p) => (
                 <Link key={p.id} href={`/protocols/${p.id}`} className="block group">
-                  <div className="flex items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-4 shadow-sm hover:border-sky-700 hover:shadow-md transition-all duration-150">
+                  <div className="flex items-center gap-4 rounded-xl border border-border bg-card px-5 py-4 shadow-sm hover:border-sky-700 hover:shadow-md transition-all duration-150">
                     <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shrink-0 shadow-sm">
                       <ClipboardList className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-zinc-100 truncate">{p.pathology}</p>
-                      <p className="text-xs text-slate-500 truncate">{p.phase} · {p.exerciseCount} exercice{p.exerciseCount > 1 ? 's' : ''}</p>
+                      <p className="font-medium text-sm text-foreground truncate">{p.pathology}</p>
+                      <p className="text-xs text-muted-foreground truncate">{p.phase} · {p.exerciseCount} exercice{p.exerciseCount > 1 ? 's' : ''}</p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-xs text-slate-400">{formatRelativeDate(p.createdAt)}</span>
-                      <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-sky-500 transition-colors" />
+                      <span className="text-xs text-muted-foreground">{formatRelativeDate(p.createdAt)}</span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-sky-400 transition-colors" />
                     </div>
                   </div>
                 </Link>
@@ -368,14 +368,14 @@ export default function DashboardPage() {
 
         {/* ── Compléter son profil (si vide) ── */}
         {profile && !profile.firstName && (
-          <div className="flex items-center gap-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 px-5 py-4">
+          <div className="flex items-center gap-4 rounded-xl border px-5 py-4" style={{ borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.05)' }}>
             <span className="text-2xl">✨</span>
             <div className="flex-1">
-              <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Complétez votre profil</p>
-              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Ajoutez votre prénom pour personnaliser votre espace.</p>
+              <p className="text-sm font-medium" style={{ color: '#F59E0B' }}>Complétez votre profil</p>
+              <p className="text-xs mt-0.5 text-muted-foreground">Ajoutez votre prénom pour personnaliser votre espace.</p>
             </div>
             <Link href="/profile">
-              <Button size="sm" variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-300">
+              <Button size="sm" variant="outline" style={{ borderColor: 'rgba(245,158,11,0.5)', color: '#F59E0B' }}>
                 Compléter →
               </Button>
             </Link>
