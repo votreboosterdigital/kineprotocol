@@ -77,6 +77,9 @@ model Protocol {
   patientVersion        String?
   hasLiteratureContext  Boolean            @default(false)
   version               Int                @default(1)
+  sins             Json?
+  stage            String?
+  patientProfile   Json?              @map("patient_profile")
   exercises        ProtocolExercise[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
