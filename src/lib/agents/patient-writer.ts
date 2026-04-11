@@ -81,28 +81,44 @@ ${PNE_GUIDE}
 ${input.exercises.map((e, i) => `  ${i + 1}. ${e.name} — ${e.sets ?? ''}x${e.reps ?? ''} (repos ${e.rest ?? ''}) — ${e.description}`).join('\n')}
 
 ## Patient
-- Âge : ${input.patientAge ?? 'non renseigné'}
-- Sport : ${input.patientSport ?? 'non sportif'}
+- Âge : ${input.patientProfile?.age ?? input.patientAge ?? 'non renseigné'}
+- Sport : ${input.patientProfile?.sport ?? input.patientSport ?? 'non sportif'}
+- Objectif : ${input.patientProfile?.objective ?? 'retour activité'}
 - Langue : ${input.language ?? 'français'}
 
 ## Format attendu (JSON strict)
 {
-  "title": "Titre accrocheur et positif pour le document",
-  "introduction": "Paragraphe d'introduction bienveillant (3-4 phrases max)",
-  "objectives": ["Objectif reformulé simplement 1", "Objectif 2"],
+  "title": "Titre positif et motivant",
+  "introduction": "Paragraphe bienveillant 3-4 phrases max",
+  "objectives": ["Objectif reformulé simplement"],
   "exercises": [
     {
-      "name": "Nom simple de l'exercice",
-      "howTo": "Explication simple en 2-3 phrases, sans jargon",
+      "name": "Nom simple",
+      "howTo": "Explication en 2-3 phrases sans jargon",
       "sets": "3 séries de 10 répétitions",
-      "tip": "Conseil pratique ou point de vigilance"
+      "tip": "Conseil pratique",
+      "whenToDo": "Quand le faire — ex: Après l'échauffement, jamais après une longue journée debout"
     }
   ],
-  "progressionMessage": "Message positif expliquant quand/comment la progression sera évaluée",
-  "importantWarnings": ["Signe d'alarme 1 qui nécessite de contacter le kiné", "Signe 2"],
-  "motivationalClose": "Message de clôture motivant et personnalisé"
+  "progressionMessage": "Message positif sur la progression",
+  "importantWarnings": ["Signe qui nécessite de contacter le kiné"],
+  "motivationalClose": "Message de clôture motivant",
+  "painEducation": {
+    "alarmMetaphor": "Ta douleur est comme une alarme incendie sensible — elle ne signifie pas toujours qu'il y a un incendie. Une douleur modérée pendant l'exercice ne signifie pas que tu te blesses.",
+    "flareUpPlan": [
+      "Repos relatif : réduis l'activité mais ne t'arrête pas totalement",
+      "Glace ou chaleur selon ta préférence — 15 min suffisent",
+      "Reprends progressivement dès amélioration — une poussée n'est pas une nouvelle blessure"
+    ]
+  }
 }
 
+RÈGLES ABSOLUES :
+- Remplacer "dégénérescence" par "adaptations naturelles"
+- Remplacer "rupture partielle" par "tissu en cours de guérison"
+- Remplacer "arthrose" par "changements liés à l'âge"
+- Jamais de terme nocebo ou catastrophisant
+- Appliquer systématiquement les principes PNE du guide ci-dessus
 Réponds UNIQUEMENT avec le JSON.`
 
   const response = await withRetry(() => anthropic.messages.create({
