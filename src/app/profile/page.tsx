@@ -124,7 +124,7 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       {/* En-tête profil */}
-      <div className="flex items-center gap-6 p-6 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 border border-slate-700 shadow-xl">
+      <div className="flex items-center gap-6 p-6 rounded-2xl shadow-xl" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', border: '1px solid #1e2432' }}>
         <Initials firstName={form.firstName} lastName={form.lastName} size="lg" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -157,8 +157,8 @@ export default function ProfilePage() {
         <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-900/30">
-                <User className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+              <div className="p-1.5 rounded-lg" style={{ background: 'rgba(56,189,248,0.1)' }}>
+                <User className="h-4 w-4" style={{ color: '#38bdf8' }} />
               </div>
               <div>
                 <CardTitle className="text-base">Informations personnelles</CardTitle>
@@ -198,7 +198,7 @@ export default function ProfilePage() {
             </div>
             <div className="space-y-1.5">
               <Label>Adresse email</Label>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-500">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-md text-sm" style={{ background: '#0e1117', border: '1px solid #1e2432', color: '#64748b' }}>
                 <Mail className="h-4 w-4" />
                 {profile.email}
                 <span className="ml-auto text-xs">Non modifiable</span>
@@ -211,8 +211,8 @@ export default function ProfilePage() {
         <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-violet-50 dark:bg-violet-900/30">
-                <Building2 className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+              <div className="p-1.5 rounded-lg" style={{ background: 'rgba(139,92,246,0.1)' }}>
+                <Building2 className="h-4 w-4" style={{ color: '#a78bfa' }} />
               </div>
               <div>
                 <CardTitle className="text-base">Cabinet</CardTitle>
@@ -249,10 +249,10 @@ export default function ProfilePage() {
         <Separator />
 
         {/* Plan */}
-        <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between p-4 rounded-xl" style={{ background: '#0e1117', border: '1px solid #1e2432' }}>
           <div>
             <p className="text-sm font-medium">Abonnement actuel</p>
-            <p className="text-xs text-slate-500 mt-0.5">Gérez votre plan et vos moyens de paiement</p>
+            <p className="text-xs mt-0.5" style={{ color: '#64748b' }}>Gérez votre plan et vos moyens de paiement</p>
           </div>
           <div className="flex items-center gap-3">
             <Badge className={`${planInfo.color} border-0`}>{planInfo.label}</Badge>
