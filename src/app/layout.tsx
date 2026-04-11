@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Syne, DM_Sans } from 'next/font/google'
+import { Syne, DM_Sans, Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { ConditionalSidebar } from '@/components/layout/ConditionalSidebar'
 import { ConditionalFeedback } from '@/components/ConditionalFeedback'
@@ -15,6 +15,16 @@ const dmSans = DM_Sans({
   subsets: ['latin'],
   weight: ['300', '400', '500'],
   variable: '--font-body',
+})
+
+const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist',
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
 })
 
 export const metadata: Metadata = {
@@ -57,7 +67,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className={`${syne.variable} ${dmSans.variable} font-body`}>
+      <body className={`${syne.variable} ${dmSans.variable} ${geist.variable} ${geistMono.variable} font-body`}>
         <div className="flex min-h-screen">
           <ConditionalSidebar />
           <main className="flex-1 min-h-screen overflow-y-auto p-6" style={{ background: '#080A0F' }}>
