@@ -52,11 +52,11 @@ function OnboardingToast({ protocolId }: { protocolId: string | null }) {
 
   if (protocolId) {
     return (
-      <div className="fixed bottom-4 right-4 z-50 w-80 rounded-2xl border border-green-200 dark:border-green-800 bg-white dark:bg-slate-900 shadow-xl p-4 space-y-3">
+      <div className="fixed bottom-4 right-4 z-50 w-80 rounded-2xl border border-green-800/50 bg-zinc-900 shadow-xl p-4 space-y-3">
         <div className="flex items-center gap-3">
           <span className="text-2xl">🎉</span>
           <div>
-            <p className="font-semibold text-sm text-slate-900 dark:text-slate-100">Protocole démo prêt !</p>
+            <p className="font-semibold text-sm text-zinc-100">Protocole démo prêt !</p>
             <p className="text-xs text-slate-500">Votre premier protocole a été généré.</p>
           </div>
         </div>
@@ -83,10 +83,10 @@ function OnboardingToast({ protocolId }: { protocolId: string | null }) {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-80 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-4 space-y-3">
+    <div className="fixed bottom-4 right-4 z-50 w-80 rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl p-4 space-y-3">
       <div className="flex items-start justify-between">
         <div>
-          <p className="font-semibold text-sm text-slate-900 dark:text-slate-100">Génération de votre démo</p>
+          <p className="font-semibold text-sm text-zinc-100">Génération de votre démo</p>
           <p className="text-xs text-slate-400">Continuez à explorer pendant ce temps</p>
         </div>
         <button
@@ -183,7 +183,7 @@ function getDateLabel() {
 }
 
 const PLAN_BADGE: Record<string, { label: string; cls: string }> = {
-  FREE: { label: 'Gratuit', cls: 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' },
+  FREE: { label: 'Gratuit', cls: 'bg-zinc-700 text-zinc-300' },
   PRO: { label: 'Pro', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
   CABINET: { label: 'Cabinet', cls: 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300' },
 }
@@ -266,32 +266,32 @@ export default function DashboardPage() {
         {/* ── Métriques ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Total protocoles */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-sky-50 dark:bg-sky-900/30">
+              <div className="p-2 rounded-lg bg-sky-900/20">
                 <ClipboardList className="h-4 w-4 text-sky-600 dark:text-sky-400" />
               </div>
               <span className="text-xs text-slate-400">Total</span>
             </div>
-            <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats?.total ?? '—'}</p>
+            <p className="text-3xl font-bold text-zinc-100">{stats?.total ?? '—'}</p>
             <p className="text-sm text-slate-500 mt-0.5">Protocoles générés</p>
           </div>
 
           {/* Ce mois */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-violet-50 dark:bg-violet-900/30">
+              <div className="p-2 rounded-lg bg-violet-900/20">
                 <TrendingUp className="h-4 w-4 text-violet-600 dark:text-violet-400" />
               </div>
               <span className="text-xs text-slate-400">Ce mois</span>
             </div>
-            <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            <p className="text-3xl font-bold text-zinc-100">
               {stats ? stats.thisMonth : '—'}
               {stats && stats.limit < 999 && (
                 <span className="text-lg font-normal text-slate-400"> / {stats.limit}</span>
               )}
             </p>
-            <div className="mt-2 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="mt-2 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${usageColor}`}
                 style={{ width: `${usagePct}%` }}
@@ -303,14 +303,14 @@ export default function DashboardPage() {
           </div>
 
           {/* Plan */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/30">
+              <div className="p-2 rounded-lg bg-amber-900/20">
                 <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               </div>
               <Badge className={`text-xs font-medium border-0 ${planInfo.cls}`}>{planInfo.label}</Badge>
             </div>
-            <p className="text-lg font-bold text-slate-900 dark:text-slate-100">Abonnement</p>
+            <p className="text-lg font-bold text-zinc-100">Abonnement</p>
             <p className="text-sm text-slate-500 mt-0.5">
               {stats?.plan === 'FREE' ? '3 protocoles/mois inclus' :
                stats?.plan === 'PRO' ? '50 protocoles/mois' : 'Protocoles illimités'}
@@ -324,18 +324,18 @@ export default function DashboardPage() {
         {/* ── Activité récente ── */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Activité récente</h2>
+            <h2 className="text-base font-semibold text-zinc-100">Activité récente</h2>
             <Link href="/protocols" className="inline-flex items-center gap-1 text-sm text-sky-600 dark:text-sky-400 hover:underline">
               Voir tout <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
 
           {!stats || stats.recent.length === 0 ? (
-            <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-10 text-center">
-              <div className="mx-auto w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+            <div className="rounded-xl border-2 border-dashed border-zinc-800 p-10 text-center">
+              <div className="mx-auto w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-3">
                 <ClipboardList className="h-5 w-5 text-slate-400" />
               </div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Aucun protocole pour l&apos;instant</p>
+              <p className="text-sm font-medium text-zinc-400">Aucun protocole pour l&apos;instant</p>
               <p className="text-xs text-slate-400 mt-1">Générez votre premier protocole IA en moins de 4 minutes</p>
               <Link href="/protocols/new">
                 <Button size="sm" className="mt-4 gap-2">
@@ -347,12 +347,12 @@ export default function DashboardPage() {
             <div className="space-y-2">
               {stats.recent.map((p) => (
                 <Link key={p.id} href={`/protocols/${p.id}`} className="block group">
-                  <div className="flex items-center gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-4 shadow-sm hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-md transition-all duration-150">
+                  <div className="flex items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900 px-5 py-4 shadow-sm hover:border-sky-700 hover:shadow-md transition-all duration-150">
                     <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shrink-0 shadow-sm">
                       <ClipboardList className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{p.pathology}</p>
+                      <p className="font-medium text-sm text-zinc-100 truncate">{p.pathology}</p>
                       <p className="text-xs text-slate-500 truncate">{p.phase} · {p.exerciseCount} exercice{p.exerciseCount > 1 ? 's' : ''}</p>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">

@@ -12,35 +12,45 @@ const updateSchema = z.object({
 })
 
 export async function GET() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
-  const profile = await prisma.userProfile.upsert({
-    where: { userId: user.id },
-    create: { userId: user.id },
-    update: {},
-  })
+    const profile = await prisma.userProfile.upsert({
+      where: { userId: user.id },
+      create: { userId: user.id },
+      update: {},
+    })
 
-  return NextResponse.json({ ...profile, email: user.email })
+    return NextResponse.json({ ...profile, email: user.email })
+  } catch (error) {
+    console.error('[profile GET]', error)
+    return NextResponse.json({ error: 'Erreur lors du chargement du profil' }, { status: 500 })
+  }
 }
 
 export async function PATCH(req: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
 
-  const body = await req.json()
-  const parsed = updateSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json({ error: 'Données invalides', details: parsed.error.flatten() }, { status: 400 })
+    const body = await req.json()
+    const parsed = updateSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Données invalides', details: parsed.error.flatten() }, { status: 400 })
+    }
+
+    const profile = await prisma.userProfile.upsert({
+      where: { userId: user.id },
+      create: { userId: user.id, ...parsed.data },
+      update: parsed.data,
+    })
+
+    return NextResponse.json({ ...profile, email: user.email })
+  } catch (error) {
+    console.error('[profile PATCH]', error)
+    return NextResponse.json({ error: 'Erreur lors de la mise à jour du profil' }, { status: 500 })
   }
-
-  const profile = await prisma.userProfile.upsert({
-    where: { userId: user.id },
-    create: { userId: user.id, ...parsed.data },
-    update: parsed.data,
-  })
-
-  return NextResponse.json({ ...profile, email: user.email })
 }
