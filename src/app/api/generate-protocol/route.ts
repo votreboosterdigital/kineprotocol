@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
 import { canGenerateProtocol } from '@/lib/billing'
@@ -7,6 +8,39 @@ import { enrichExercise } from '@/lib/agents/exercise-librarian'
 import { writePatientVersion } from '@/lib/agents/patient-writer'
 import type { ProtocolDesignerInput } from '@/types/agents'
 import type { ExerciseType, ExerciseLevel } from '@prisma/client'
+
+const SinsSchema = z.object({
+  severity: z.enum(['low', 'medium', 'high']),
+  irritability: z.enum(['low', 'medium', 'high']),
+  nature: z.enum(['mechanical', 'inflammatory', 'neuropathic']),
+})
+
+const PatientProfileSchema = z.object({
+  age: z.number().int().min(0).max(120),
+  sex: z.enum(['M', 'F']),
+  sport: z.string().max(100),
+  level: z.enum(['sedentary', 'amateur', 'competitive', 'elite']),
+  objective: z.enum(['return_activity', 'return_sport', 'return_performance']),
+  sessionsPerWeek: z.number().int().min(1).max(7),
+  sessionDuration: z.union([z.literal(30), z.literal(45), z.literal(60)]),
+})
+
+const BodySchema = z.object({
+  pathologyId: z.string().min(1),
+  phaseId: z.string().min(1),
+  sins: SinsSchema.optional(),
+  stage: z.enum(['acute', 'subacute', 'chronic']).optional(),
+  redFlagsCleared: z.boolean().optional(),
+  patientProfile: PatientProfileSchema.optional(),
+  // Champs legacy
+  patientAge: z.number().int().optional(),
+  patientSport: z.string().optional(),
+  patientLevel: z.string().optional(),
+  sessionDuration: z.number().int().optional(),
+  sessionsPerWeek: z.number().int().optional(),
+  constraints: z.array(z.string()).default([]),
+  literatureContext: z.string().optional(),
+})
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,45 +56,44 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body = await req.json()
-    const {
-      pathologyId,
-      phaseId,
-      patientAge,
-      patientSport,
-      patientLevel,
-      sessionDuration,
-      sessionsPerWeek,
-      constraints,
-      literatureContext,
-    } = body
+    const parsed = BodySchema.safeParse(await req.json())
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Données invalides', details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
 
-    // Chargement en parallèle de la pathologie et de la phase
+    const body = parsed.data
+
     const [pathology, phase] = await Promise.all([
-      prisma.pathology.findUniqueOrThrow({ where: { id: pathologyId } }),
-      prisma.phase.findUniqueOrThrow({ where: { id: phaseId } }),
+      prisma.pathology.findUniqueOrThrow({ where: { id: body.pathologyId } }),
+      prisma.phase.findUniqueOrThrow({ where: { id: body.phaseId } }),
     ])
 
-    // Préparation de l'input pour l'agent Protocol Designer
     const agentInput: ProtocolDesignerInput = {
       pathologyName: pathology.name,
       region: pathology.region,
       phaseName: phase.name,
       phaseDescription: phase.description ?? '',
       phaseCriteria: phase.criteria,
-      patientAge,
-      patientSport,
-      patientLevel,
-      sessionDuration,
-      sessionsPerWeek,
-      constraints: constraints ?? [],
-      literatureContext: typeof literatureContext === 'string' ? literatureContext : undefined,
+      sins: body.sins,
+      stage: body.stage,
+      redFlagsCleared: body.redFlagsCleared,
+      patientProfile: body.patientProfile,
+      patientAge: body.patientProfile?.age ?? body.patientAge,
+      patientSport: body.patientProfile?.sport ?? body.patientSport,
+      patientLevel: body.patientProfile?.level ?? body.patientLevel,
+      sessionDuration: body.patientProfile?.sessionDuration ?? body.sessionDuration,
+      sessionsPerWeek: body.patientProfile?.sessionsPerWeek ?? body.sessionsPerWeek,
+      constraints: body.constraints,
+      literatureContext: typeof body.literatureContext === 'string'
+        ? body.literatureContext
+        : undefined,
     }
 
-    // Appel de l'agent Protocol Designer
     const protocolOutput = await designProtocol(agentInput)
 
-    // Enrichissement de chaque exercice via l'agent Exercise Librarian
     const enrichedExercises = await Promise.all(
       protocolOutput.exercises.map(async (ex) => {
         const enriched = await enrichExercise({
@@ -72,7 +105,6 @@ export async function POST(req: NextRequest) {
       })
     )
 
-    // Sauvegarde des exercices en base (upsert par slug)
     const savedExercises = await Promise.all(
       enrichedExercises.map((ex) =>
         prisma.exercise.upsert({
@@ -97,7 +129,6 @@ export async function POST(req: NextRequest) {
       )
     )
 
-    // Génération de la version patient via l'agent Patient Writer
     const patientOutput = await writePatientVersion({
       pathologyName: pathology.name,
       phaseName: phase.name,
@@ -110,28 +141,31 @@ export async function POST(req: NextRequest) {
         reps: ex.reps,
         rest: ex.rest,
       })),
-      patientAge,
-      patientSport,
+      patientProfile: body.patientProfile,
+      patientAge: body.patientProfile?.age ?? body.patientAge,
+      patientSport: body.patientProfile?.sport ?? body.patientSport,
     })
 
-    // Création du protocole final en base avec tous ses exercices
     const protocol = await prisma.protocol.create({
       data: {
         userId: user.id,
         pathologyId: pathology.id,
         phaseId: phase.id,
-        patientAge,
-        patientSport,
-        patientLevel,
-        sessionDuration,
-        sessionsPerWeek,
-        constraints: constraints ?? [],
+        patientAge: body.patientProfile?.age ?? body.patientAge,
+        patientSport: body.patientProfile?.sport ?? body.patientSport,
+        patientLevel: body.patientProfile?.level ?? body.patientLevel,
+        sessionDuration: body.patientProfile?.sessionDuration ?? body.sessionDuration,
+        sessionsPerWeek: body.patientProfile?.sessionsPerWeek ?? body.sessionsPerWeek,
+        constraints: body.constraints,
         objectives: protocolOutput.objectives,
         progression: protocolOutput.progressionCriteria,
         sessionStructure: protocolOutput.sessionStructure,
         rawAgentOutput: protocolOutput as object,
         patientVersion: JSON.stringify(patientOutput),
         hasLiteratureContext: !!agentInput.literatureContext,
+        sins: body.sins ?? undefined,
+        stage: body.stage ?? undefined,
+        patientProfile: body.patientProfile ?? undefined,
         exercises: {
           create: savedExercises.map((ex, idx) => ({
             exerciseId: ex.id,
@@ -151,7 +185,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, protocol })
   } catch (error) {
-    // Logger l'erreur complète côté serveur, sans l'exposer au client
     console.error('[generate-protocol]', error)
     return NextResponse.json(
       { success: false, error: 'Erreur lors de la génération du protocole' },
