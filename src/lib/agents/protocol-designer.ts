@@ -3,19 +3,7 @@ import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic'
 import type { ProtocolDesignerInput, ProtocolDesignerOutput } from '@/types/agents'
 import { searchClinicalKnowledge } from '@/lib/rag/search-knowledge'
 import { buildClinicalContext } from '@/lib/agents/clinical-context'
-
-async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (attempt === maxAttempts) throw error;
-      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-  throw new Error("Max attempts reached");
-}
+import { withRetry } from '@/lib/utils/retry'
 
 // Guide de référence clinique evidence-based (6 régions anatomiques)
 const CLINICAL_REFERENCE = `
@@ -184,7 +172,7 @@ Règles :
 
   const response = await withRetry(() => anthropic.messages.create({
     model: CLAUDE_MODEL,
-    max_tokens: 8192,
+    max_tokens: 4096,
     messages: [{ role: 'user', content: prompt }],
   }))
 

@@ -1,20 +1,7 @@
-// src/lib/agents/patient-writer.ts
 import { jsonrepair } from 'jsonrepair'
 import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic'
 import type { PatientWriterInput, PatientWriterOutput } from '@/types/agents'
-
-async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (attempt === maxAttempts) throw error;
-      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-  throw new Error("Max attempts reached");
-}
+import { withRetry } from '@/lib/utils/retry'
 
 // Guide PNE — Communication thérapeutique et neurosciences de la douleur
 const PNE_GUIDE = `
@@ -123,7 +110,7 @@ Réponds UNIQUEMENT avec le JSON.`
 
   const response = await withRetry(() => anthropic.messages.create({
     model: CLAUDE_MODEL,
-    max_tokens: 2048,
+    max_tokens: 1500,
     messages: [{ role: 'user', content: prompt }],
   }))
 

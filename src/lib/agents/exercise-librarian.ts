@@ -1,19 +1,7 @@
 import { jsonrepair } from 'jsonrepair'
 import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic'
 import type { ExerciseLibrarianInput, ExerciseLibrarianOutput } from '@/types/agents'
-
-async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (attempt === maxAttempts) throw error;
-      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-  throw new Error("Max attempts reached");
-}
+import { withRetry } from '@/lib/utils/retry'
 
 // Taxonomie de référence — exercices thérapeutiques en kinésithérapie
 const EXERCISE_TAXONOMY = `

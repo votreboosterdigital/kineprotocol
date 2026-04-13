@@ -1,13 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
-import { canGenerateProtocol } from '@/lib/billing'
 import { designProtocol } from '@/lib/agents/protocol-designer'
 import { enrichExercise } from '@/lib/agents/exercise-librarian'
 import { writePatientVersion } from '@/lib/agents/patient-writer'
 import type { ProtocolDesignerInput } from '@/types/agents'
-import type { ExerciseType, ExerciseLevel } from '@prisma/client'
+
+export const runtime = 'edge'
 
 const SinsSchema = z.object({
   severity: z.enum(['low', 'medium', 'high']),
@@ -32,7 +31,6 @@ const BodySchema = z.object({
   stage: z.enum(['acute', 'subacute', 'chronic']).optional(),
   redFlagsCleared: z.boolean().optional(),
   patientProfile: PatientProfileSchema.optional(),
-  // Champs legacy
   patientAge: z.number().int().optional(),
   patientSport: z.string().optional(),
   patientLevel: z.string().optional(),
@@ -42,153 +40,189 @@ const BodySchema = z.object({
   literatureContext: z.string().optional(),
 })
 
+function jsonResponse(data: object, status: number): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
 export async function POST(req: NextRequest) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  // Auth
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return jsonResponse({ error: 'Non authentifié' }, 401)
 
-    const { allowed, reason, current, limit } = await canGenerateProtocol(user.id)
-    if (!allowed) {
-      return NextResponse.json(
-        { error: reason, current, limit, upgradeUrl: '/billing' },
-        { status: 403 }
-      )
-    }
-
-    const parsed = BodySchema.safeParse(await req.json())
-    if (!parsed.success) {
-      return NextResponse.json(
-        { success: false, error: 'Données invalides', details: parsed.error.flatten() },
-        { status: 400 }
-      )
-    }
-
-    const body = parsed.data
-
-    const [pathology, phase] = await Promise.all([
-      prisma.pathology.findUniqueOrThrow({ where: { id: body.pathologyId } }),
-      prisma.phase.findUniqueOrThrow({ where: { id: body.phaseId } }),
-    ])
-
-    const agentInput: ProtocolDesignerInput = {
-      pathologyName: pathology.name,
-      region: pathology.region,
-      phaseName: phase.name,
-      phaseDescription: phase.description ?? '',
-      phaseCriteria: phase.criteria,
-      sins: body.sins,
-      stage: body.stage,
-      redFlagsCleared: body.redFlagsCleared,
-      patientProfile: body.patientProfile,
-      patientAge: body.patientProfile?.age ?? body.patientAge,
-      patientSport: body.patientProfile?.sport ?? body.patientSport,
-      patientLevel: body.patientProfile?.level ?? body.patientLevel,
-      sessionDuration: body.patientProfile?.sessionDuration ?? body.sessionDuration,
-      sessionsPerWeek: body.patientProfile?.sessionsPerWeek ?? body.sessionsPerWeek,
-      constraints: body.constraints,
-      literatureContext: typeof body.literatureContext === 'string'
-        ? body.literatureContext
-        : undefined,
-    }
-
-    const protocolOutput = await designProtocol(agentInput)
-
-    const enrichedExercises = await Promise.all(
-      protocolOutput.exercises.map(async (ex) => {
-        const enriched = await enrichExercise({
-          name: ex.name,
-          region: ex.region,
-          objective: ex.objective,
-        })
-        return { ...ex, ...enriched }
-      })
-    )
-
-    const savedExercises = await Promise.all(
-      enrichedExercises.map((ex) =>
-        prisma.exercise.upsert({
-          where: { slug: ex.slug },
-          create: {
-            name: ex.name,
-            slug: ex.slug,
-            region: ex.region,
-            objective: ex.objective,
-            type: ex.type as ExerciseType,
-            level: ex.level as ExerciseLevel,
-            equipment: ex.equipment,
-            description: ex.description,
-            cues: ex.cues,
-            commonErrors: ex.commonErrors,
-            variants: ex.variants,
-            tags: ex.tags,
-            aiGenerated: true,
-          },
-          update: {},
-        })
-      )
-    )
-
-    const patientOutput = await writePatientVersion({
-      pathologyName: pathology.name,
-      phaseName: phase.name,
-      objectives: protocolOutput.objectives,
-      progressionCriteria: protocolOutput.progressionCriteria,
-      exercises: enrichedExercises.map((ex) => ({
-        name: ex.name,
-        description: ex.description,
-        sets: ex.sets,
-        reps: ex.reps,
-        rest: ex.rest,
-      })),
-      patientProfile: body.patientProfile,
-      patientAge: body.patientProfile?.age ?? body.patientAge,
-      patientSport: body.patientProfile?.sport ?? body.patientSport,
-    })
-
-    const protocol = await prisma.protocol.create({
-      data: {
-        userId: user.id,
-        pathologyId: pathology.id,
-        phaseId: phase.id,
-        patientAge: body.patientProfile?.age ?? body.patientAge,
-        patientSport: body.patientProfile?.sport ?? body.patientSport,
-        patientLevel: body.patientProfile?.level ?? body.patientLevel,
-        sessionDuration: body.patientProfile?.sessionDuration ?? body.sessionDuration,
-        sessionsPerWeek: body.patientProfile?.sessionsPerWeek ?? body.sessionsPerWeek,
-        constraints: body.constraints,
-        objectives: protocolOutput.objectives,
-        progression: protocolOutput.progressionCriteria,
-        sessionStructure: protocolOutput.sessionStructure,
-        rawAgentOutput: protocolOutput as object,
-        patientVersion: JSON.stringify(patientOutput),
-        hasLiteratureContext: !!agentInput.literatureContext,
-        sins: body.sins ?? undefined,
-        stage: body.stage ?? undefined,
-        patientProfile: body.patientProfile ?? undefined,
-        exercises: {
-          create: savedExercises.map((ex, idx) => ({
-            exerciseId: ex.id,
-            order: idx + 1,
-            sets: enrichedExercises[idx].sets,
-            reps: enrichedExercises[idx].reps,
-            rest: enrichedExercises[idx].rest,
-          })),
-        },
-      },
-      include: {
-        exercises: { include: { exercise: true } },
-        pathology: true,
-        phase: true,
-      },
-    })
-
-    return NextResponse.json({ success: true, protocol })
-  } catch (error) {
-    console.error('[generate-protocol]', error)
-    return NextResponse.json(
-      { success: false, error: 'Erreur lors de la génération du protocole' },
-      { status: 500 }
+  // Validation
+  const parsed = BodySchema.safeParse(await req.json())
+  if (!parsed.success) {
+    return jsonResponse(
+      { success: false, error: 'Données invalides', details: parsed.error.flatten() },
+      400
     )
   }
+  const body = parsed.data
+
+  // Billing check via Supabase (Edge-compatible — pas de Prisma)
+  const startOfMonth = new Date()
+  startOfMonth.setDate(1)
+  startOfMonth.setHours(0, 0, 0, 0)
+
+  const [subResult, countResult] = await Promise.all([
+    supabase.from('subscriptions').select('plan').eq('userId', user.id).single(),
+    supabase
+      .from('protocols')
+      .select('id', { count: 'exact', head: true })
+      .eq('userId', user.id)
+      .gte('createdAt', startOfMonth.toISOString()),
+  ])
+
+  const plan: string = subResult.data?.plan ?? 'FREE'
+  const protocolCount: number = countResult.count ?? 0
+
+  if (plan === 'FREE' && protocolCount >= 3) {
+    return jsonResponse(
+      {
+        error: 'Limite de 3 protocoles/mois atteinte sur le plan gratuit',
+        current: protocolCount,
+        limit: 3,
+        upgradeUrl: '/billing',
+      },
+      403
+    )
+  }
+
+  // Stream SSE — tout le reste se passe dans le ReadableStream
+  const enc = new TextEncoder()
+  const send = (controller: ReadableStreamDefaultController, data: object) => {
+    controller.enqueue(enc.encode(`data: ${JSON.stringify(data)}\n\n`))
+  }
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        // Étape 1 — chargement des données cliniques
+        send(controller, { type: 'progress', step: 1, total: 5, message: 'Chargement des données cliniques…' })
+
+        const [pathRes, phaseRes] = await Promise.all([
+          supabase.from('pathologies').select('id, name, region').eq('id', body.pathologyId).single(),
+          supabase.from('phases').select('id, name, description, criteria').eq('id', body.phaseId).single(),
+        ])
+
+        if (pathRes.error || !pathRes.data) {
+          throw new Error(`Pathologie introuvable : ${body.pathologyId}`)
+        }
+        if (phaseRes.error || !phaseRes.data) {
+          throw new Error(`Phase introuvable : ${body.phaseId}`)
+        }
+
+        const pathology = pathRes.data as { id: string; name: string; region: string }
+        const phase = phaseRes.data as { id: string; name: string; description: string | null; criteria: string[] }
+
+        // Étape 2 — génération du protocole clinique
+        send(controller, { type: 'progress', step: 2, total: 5, message: 'Génération du protocole clinique…' })
+
+        const agentInput: ProtocolDesignerInput = {
+          pathologyName: pathology.name,
+          region: pathology.region,
+          phaseName: phase.name,
+          phaseDescription: phase.description ?? '',
+          phaseCriteria: phase.criteria,
+          sins: body.sins,
+          stage: body.stage,
+          redFlagsCleared: body.redFlagsCleared,
+          patientProfile: body.patientProfile,
+          patientAge: body.patientProfile?.age ?? body.patientAge,
+          patientSport: body.patientProfile?.sport ?? body.patientSport,
+          patientLevel: body.patientProfile?.level ?? body.patientLevel,
+          sessionDuration: body.patientProfile?.sessionDuration ?? body.sessionDuration,
+          sessionsPerWeek: body.patientProfile?.sessionsPerWeek ?? body.sessionsPerWeek,
+          constraints: body.constraints,
+          literatureContext: typeof body.literatureContext === 'string'
+            ? body.literatureContext
+            : undefined,
+        }
+
+        const protocolOutput = await designProtocol(agentInput)
+
+        // Étape 3 — enrichissement des exercices
+        send(controller, { type: 'progress', step: 3, total: 5, message: 'Enrichissement des exercices…' })
+
+        const enrichedExercises = await Promise.all(
+          protocolOutput.exercises.map(async (ex) => {
+            const enriched = await enrichExercise({
+              name: ex.name,
+              region: ex.region,
+              objective: ex.objective,
+            })
+            return { ...ex, ...enriched }
+          })
+        )
+
+        // Étape 4 — rédaction version patient
+        send(controller, { type: 'progress', step: 4, total: 5, message: 'Rédaction version patient…' })
+
+        const patientOutput = await writePatientVersion({
+          pathologyName: pathology.name,
+          phaseName: phase.name,
+          objectives: protocolOutput.objectives,
+          progressionCriteria: protocolOutput.progressionCriteria,
+          exercises: enrichedExercises.map((ex) => ({
+            name: ex.name,
+            description: ex.description,
+            sets: ex.sets,
+            reps: ex.reps,
+            rest: ex.rest,
+          })),
+          patientProfile: body.patientProfile,
+          patientAge: body.patientProfile?.age ?? body.patientAge,
+          patientSport: body.patientProfile?.sport ?? body.patientSport,
+        })
+
+        // Étape 5 — finalisation
+        send(controller, { type: 'progress', step: 5, total: 5, message: 'Finalisation…' })
+
+        // Émettre le résultat complet — la sauvegarde DB se fait dans /api/save-protocol
+        send(controller, {
+          type: 'done',
+          protocol: {
+            protocolOutput,
+            enrichedExercises,
+            patientOutput,
+            meta: {
+              userId: user.id,
+              pathologyId: pathology.id,
+              phaseId: phase.id,
+              patientAge: body.patientProfile?.age ?? body.patientAge,
+              patientSport: body.patientProfile?.sport ?? body.patientSport,
+              patientLevel: body.patientProfile?.level ?? body.patientLevel,
+              sessionDuration: body.patientProfile?.sessionDuration ?? body.sessionDuration,
+              sessionsPerWeek: body.patientProfile?.sessionsPerWeek ?? body.sessionsPerWeek,
+              constraints: body.constraints,
+              sins: body.sins,
+              stage: body.stage,
+              patientProfile: body.patientProfile,
+              hasLiteratureContext: !!body.literatureContext,
+            },
+          },
+        })
+      } catch (error) {
+        send(controller, {
+          type: 'error',
+          message: error instanceof Error ? error.message : 'Erreur lors de la génération du protocole',
+          code: 'GENERATION_ERROR',
+        })
+      } finally {
+        controller.close()
+      }
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  })
 }

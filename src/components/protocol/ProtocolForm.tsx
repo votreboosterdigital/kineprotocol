@@ -10,6 +10,8 @@ import { PillGroup } from '@/components/ui/pill-group'
 import { Combobox } from '@/components/ui/combobox'
 import type { Pathology, Phase } from '@prisma/client'
 import { cn } from '@/lib/utils'
+import { useProtocolGeneration } from '@/hooks/useProtocolGeneration'
+import { ProtocolGenerationProgress } from '@/components/protocol/ProtocolGenerationProgress'
 
 interface ProtocolFormProps {
   pathologies: Pathology[]
@@ -85,13 +87,6 @@ const DURATION_OPTIONS = [
 
 type DurationStr = '30' | '45' | '60'
 
-const LOADING_STEPS = [
-  'Interrogation base clinique...',
-  'Analyse du profil...',
-  'Construction du protocole...',
-  'Vérification des paramètres...',
-]
-
 const STEPS = [
   { label: 'Anamnèse', desc: 'Contexte clinique & sécurité' },
   { label: 'Profil', desc: 'Patient & objectif' },
@@ -101,13 +96,11 @@ const STEPS = [
 export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
   const router = useRouter()
   const [step, setStep] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [loadingStepIdx, setLoadingStepIdx] = useState(0)
-  const [loadingProgress, setLoadingProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [literatureData, setLiteratureData] = useState<LiteratureData | null>(null)
   const [literatureLoading, setLiteratureLoading] = useState(false)
   const [useLiterature, setUseLiterature] = useState(false)
+  const { state: genState, generate } = useProtocolGeneration()
 
   // Étape 1
   const [pathologyId, setPathologyId] = useState('')
@@ -140,28 +133,6 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
     setUseLiterature(false)
   }, [pathologyId])
 
-  // Animation loading progress
-  useEffect(() => {
-    if (!loading) {
-      setLoadingStepIdx(0)
-      setLoadingProgress(0)
-      return
-    }
-    const steps = [
-      { delay: 0, step: 0, progress: 5 },
-      { delay: 3000, step: 1, progress: 25 },
-      { delay: 8000, step: 2, progress: 55 },
-      { delay: 18000, step: 3, progress: 80 },
-    ]
-    const timers = steps.map(({ delay, step: s, progress: p }) =>
-      setTimeout(() => {
-        setLoadingStepIdx(s)
-        setLoadingProgress(p)
-      }, delay)
-    )
-    return () => timers.forEach(clearTimeout)
-  }, [loading])
-
   const handleEnrichLiterature = useCallback(async () => {
     if (!selectedPathologyName) return
     setLiteratureLoading(true)
@@ -187,97 +158,44 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
     }
   }, [useLiterature, literatureData, selectedPathologyName, handleEnrichLiterature])
 
-  async function handleSubmit() {
-    setLoading(true)
+  function handleSubmit() {
     setError(null)
-    try {
-      const body = {
-        pathologyId,
-        phaseId,
-        sins: sinsSeverity && sinsIrritability && sinsNature
-          ? { severity: sinsSeverity, irritability: sinsIrritability, nature: sinsNature }
-          : undefined,
-        stage: stage ?? undefined,
-        redFlagsCleared: allRedFlagsCleared,
-        patientProfile: {
-          age: age ? parseInt(age) : 35,
-          sex: sex ?? 'M',
-          sport: sport || '',
-          level: level ?? 'amateur',
-          objective: objective ?? 'return_activity',
-          sessionsPerWeek,
-          sessionDuration: parseInt(sessionDuration) as 30 | 45 | 60,
-        },
-        constraints: [],
-        literatureContext: useLiterature && literatureData
-          ? JSON.stringify(literatureData)
-          : undefined,
-      }
-
-      const res = await fetch('/api/generate-protocol', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error)
-      router.push(`/protocols/${data.protocol.id}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue')
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <Card className="max-w-2xl border-zinc-800 bg-zinc-950">
-        <CardContent className="py-12 flex flex-col gap-6">
-          <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#0D9488] rounded-full transition-all duration-[3000ms] ease-out"
-              style={{ width: `${loadingProgress}%` }}
-            />
-          </div>
-          <div className="space-y-2">
-            {LOADING_STEPS.map((msg, i) => (
-              <div
-                key={i}
-                className={cn(
-                  'flex items-center gap-3 text-sm transition-all duration-500',
-                  i < loadingStepIdx
-                    ? 'text-zinc-500'
-                    : i === loadingStepIdx
-                    ? 'text-zinc-100 font-medium'
-                    : 'text-zinc-700'
-                )}
-              >
-                <div
-                  className={cn(
-                    'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0',
-                    i < loadingStepIdx
-                      ? 'border-[#0D9488] bg-[#0D9488]'
-                      : i === loadingStepIdx
-                      ? 'border-[#0D9488] border-t-transparent animate-spin'
-                      : 'border-zinc-700'
-                  )}
-                >
-                  {i < loadingStepIdx && (
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-                {msg}
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-zinc-600 text-center">Durée estimée : 15–25 secondes</p>
-        </CardContent>
-      </Card>
-    )
+    generate({
+      pathologyId,
+      phaseId,
+      sins: sinsSeverity && sinsIrritability && sinsNature
+        ? { severity: sinsSeverity, irritability: sinsIrritability, nature: sinsNature }
+        : undefined,
+      stage: stage ?? undefined,
+      redFlagsCleared: allRedFlagsCleared,
+      patientProfile: {
+        age: age ? parseInt(age) : 35,
+        sex: sex ?? 'M',
+        sport: sport || '',
+        level: level ?? 'amateur',
+        objective: objective ?? 'return_activity',
+        sessionsPerWeek,
+        sessionDuration: parseInt(sessionDuration) as 30 | 45 | 60,
+      },
+      constraints: [],
+      literatureContext: useLiterature && literatureData
+        ? JSON.stringify(literatureData)
+        : undefined,
+    }).catch((err: Error) => {
+      setError(err.message)
+    })
   }
 
   return (
+    <>
+      <ProtocolGenerationProgress
+        state={genState}
+        onDone={() => {
+          if (genState.protocol?.id) {
+            router.push(`/protocols/${genState.protocol.id}`)
+          }
+        }}
+      />
     <div className="max-w-2xl space-y-6">
       {/* Stepper */}
       <div className="flex items-center gap-0">
@@ -560,9 +478,11 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
             </>
           )}
 
-          {/* Erreur */}
-          {error && (
-            error.toLowerCase().includes('quota') || error.includes('Limite') ? (
+          {/* Erreur (locale ou retournée par le hook) */}
+          {(error ?? genState.error) && (() => {
+            const msg = error ?? genState.error ?? ''
+            const isBilling = msg.toLowerCase().includes('quota') || msg.includes('Limite')
+            return isBilling ? (
               <div className="p-4 rounded-lg space-y-2 border" style={{ background: 'rgba(13,148,136,0.05)', borderColor: 'rgba(13,148,136,0.2)' }}>
                 <p className="text-sm font-semibold text-zinc-100">Vous avez utilisé vos 3 protocoles ce mois-ci</p>
                 <p className="text-sm text-zinc-400">Votre quota se renouvelle le 1er du mois prochain.</p>
@@ -572,9 +492,9 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
                 </a>
               </div>
             ) : (
-              <div className="p-3 bg-red-950/50 border border-red-900 rounded-md text-red-400 text-sm">{error}</div>
+              <div className="p-3 bg-red-950/50 border border-red-900 rounded-md text-red-400 text-sm">{msg}</div>
             )
-          )}
+          })()}
 
           {/* Navigation */}
           <div className="flex justify-between pt-2">
@@ -620,5 +540,6 @@ export function ProtocolForm({ pathologies, phases }: ProtocolFormProps) {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }
