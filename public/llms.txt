@@ -1,0 +1,20 @@
+KinéProtocol AI
+
+SaaS de génération automatique de protocoles de kinésithérapie par IA.
+Pour kinésithérapeutes libéraux et cabinets. Plans FREE / 29€ / 79€ par mois.
+
+Fonctionnalités
+
+Génération de protocoles personnalisés par pathologie et patient
+Export PDF professionnel
+Accès via magic link Supabase Auth (sans mot de passe)
+
+À propos
+KinéProtocol AI automatise la rédaction des protocoles de rééducation,
+permettant aux kinésithérapeutes de gagner du temps administratif
+et d'améliorer la cohérence clinique de leurs prises en charge.
+Pages importantes
+
+Accueil
+Tarifs
+Se connecter

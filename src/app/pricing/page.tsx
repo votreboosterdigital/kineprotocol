@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { PLANS } from '@/lib/stripe'
 import { PricingCTA } from './PricingCTA'
+import { FaqSchema } from '@/components/FaqSchema'
 
 export const metadata: Metadata = {
   title: 'Tarifs — KinéProtocol AI',
@@ -28,9 +29,25 @@ const PLAN_DETAILS = [
   },
 ]
 
+const pricingFaqs = [
+  {
+    question: "Peut-on annuler l'abonnement KinéProtocol AI à tout moment ?",
+    answer: "Oui, l'abonnement est sans engagement. Vous pouvez annuler depuis votre espace client à tout moment. L'accès reste actif jusqu'à la fin de la période payée."
+  },
+  {
+    question: "KinéProtocol AI est-il remboursable par les OPCO ou organismes de formation ?",
+    answer: "KinéProtocol AI est un outil SaaS et non une formation. Il n'est pas éligible aux financements OPCO. Cependant, son coût est déductible en tant que charge professionnelle pour les kinésithérapeutes libéraux."
+  },
+  {
+    question: "Y a-t-il une réduction pour les étudiants en kinésithérapie ?",
+    answer: "Contactez-nous pour les conditions tarifaires étudiants. Le plan FREE est accessible sans restriction pour tester la plateforme pendant vos études."
+  }
+]
+
 export default function PricingPage() {
   return (
     <div className="max-w-5xl mx-auto py-16 px-4 space-y-12">
+      <FaqSchema faqs={pricingFaqs} />
       {/* En-tête */}
       <div className="text-center space-y-4">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">

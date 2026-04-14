@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { FaqSchema } from '@/components/FaqSchema'
 
 export const metadata: Metadata = {
   title: 'KinéProtocol AI — Protocoles de rééducation en 30 secondes',
@@ -8,10 +9,26 @@ export const metadata: Metadata = {
     "Générez automatiquement vos protocoles de rééducation. Basé sur Cochrane, JOSPT, Maitland. Gratuit jusqu'à 3 protocoles/mois.",
 }
 
+const landingFaqs = [
+  {
+    question: "Comment KinéProtocol AI génère-t-il des protocoles de rééducation ?",
+    answer: "KinéProtocol AI utilise l'intelligence artificielle pour générer des protocoles de kinésithérapie personnalisés selon la pathologie, le stade de récupération et le profil du patient. Le kinésithérapeute saisit les paramètres cliniques et obtient un protocole structuré en quelques secondes."
+  },
+  {
+    question: "KinéProtocol AI remplace-t-il le jugement clinique du kinésithérapeute ?",
+    answer: "Non. KinéProtocol AI est un outil d'aide à la décision qui accélère la rédaction des protocoles. Le kinésithérapeute reste responsable de la validation clinique, de l'adaptation au patient et de la supervision des séances. L'IA automatise l'administratif, pas le soin."
+  },
+  {
+    question: "Le plan gratuit de KinéProtocol AI est-il suffisant pour un cabinet ?",
+    answer: "Le plan FREE permet de tester la génération de protocoles. Pour un usage en cabinet, le plan à 29€/mois offre un nombre de protocoles illimité et l'export PDF professionnel. Le plan à 79€/mois ajoute des fonctionnalités avancées pour les cabinets multi-praticiens."
+  }
+]
+
 export default function LandingPage() {
   return (
     /* -m-6 contrebalance le p-6 du layout root */
     <div className="-m-6 min-h-screen" style={{ background: '#080A0F', color: '#EDF2F8' }}>
+      <FaqSchema faqs={landingFaqs} />
 
       {/* ── Nav ── */}
       <header
